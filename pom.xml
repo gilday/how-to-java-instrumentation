@@ -16,6 +16,9 @@
 
 
         <!-- dependencies -->
+        <versions.assertj-core>3.9.0</versions.assertj-core>
+        <versions.docker-java>3.0.14</versions.docker-java>
+        <versions.guava>23.6-jre</versions.guava>
         <versions.junit-jupiter>5.0.2</versions.junit-jupiter>
         <versions.junit-platform>1.0.2</versions.junit-platform>
         <versions.lombok>1.16.18</versions.lombok>
@@ -39,6 +42,26 @@
     </properties>
 
     <dependencies>
+        <!-- ASSERTJ -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${versions.assertj-core}</version>
+        </dependency>
+        <!-- DOCKER-JAVA -->
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java</artifactId>
+            <version>${versions.docker-java}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- GUAVA -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${versions.guava}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- JUNIT -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -153,6 +176,14 @@
         <plugins>
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <how-to-java-instrument-jar>${project.build.directory}/${project.build.finalName}.jar</how-to-java-instrument-jar>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
