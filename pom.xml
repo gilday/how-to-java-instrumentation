@@ -1,0 +1,198 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.gilday</groupId>
+    <artifactId>how-to-java-instrumentation</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>how-to-java-instrumentation</name>
+    <description>Personal reference guide for java instrumentation projects</description>
+    <url>https://github.com/gilday/how-to-java-instrumentation</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+
+        <!-- dependencies -->
+        <versions.junit-jupiter>5.0.2</versions.junit-jupiter>
+        <versions.junit-platform>1.0.2</versions.junit-platform>
+        <versions.lombok>1.16.18</versions.lombok>
+        <versions.tinylog>1.3.2</versions.tinylog>
+
+
+        <!-- plugins -->
+        <versions.plugins.maven-clean-plugin>3.0.0</versions.plugins.maven-clean-plugin>
+        <versions.plugins.maven-dependency-plugin>3.0.2</versions.plugins.maven-dependency-plugin>
+        <versions.plugins.maven-compiler-plugin>3.7.0</versions.plugins.maven-compiler-plugin>
+        <versions.plugins.maven-deploy-plugin>2.8.2</versions.plugins.maven-deploy-plugin>
+        <versions.plugins.maven-enforcer-plugin>3.0.0-M1</versions.plugins.maven-enforcer-plugin>
+        <versions.plugins.maven-failsafe-plugin>2.20.1</versions.plugins.maven-failsafe-plugin>
+        <versions.plugins.maven-install-plugin>2.5.2</versions.plugins.maven-install-plugin>
+        <versions.plugins.maven-jar-plugin>3.0.2</versions.plugins.maven-jar-plugin>
+        <versions.plugins.maven-resources-plugin>3.0.2</versions.plugins.maven-resources-plugin>
+        <versions.plugins.maven-shade-plugin>3.1.0</versions.plugins.maven-shade-plugin>
+        <versions.plugins.maven-site-plugin>3.6</versions.plugins.maven-site-plugin>
+        <versions.plugins.maven-surefire-plugin>2.20</versions.plugins.maven-surefire-plugin>
+        <versions.plugins.exec-maven-plugin>1.6.0</versions.plugins.exec-maven-plugin>
+    </properties>
+
+    <dependencies>
+        <!-- JUNIT -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${versions.junit-jupiter}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${versions.junit-jupiter}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- LOMBOK -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${versions.lombok}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- TINYLOG -->
+        <dependency>
+            <groupId>org.tinylog</groupId>
+            <artifactId>tinylog</artifactId>
+            <version>${versions.tinylog}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${versions.plugins.maven-clean-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${versions.plugins.maven-compiler-plugin}</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${versions.plugins.maven-dependency-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${versions.plugins.maven-deploy-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${versions.plugins.maven-enforcer-plugin}</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-maven-best-practices</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <reactorModuleConvergence />
+                                    <requirePluginVersions />
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${versions.plugins.maven-failsafe-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>${versions.plugins.maven-install-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${versions.plugins.maven-jar-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${versions.plugins.maven-resources-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${versions.plugins.maven-shade-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>${versions.plugins.maven-site-plugin}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${versions.plugins.maven-surefire-plugin}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.junit.platform</groupId>
+                            <artifactId>junit-platform-surefire-provider</artifactId>
+                            <version>${versions.junit-platform}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${versions.plugins.exec-maven-plugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Agent-Class>com.github.gilday.Agent</Agent-Class>
+                            <Premain-Class>com.github.gilday.Agent</Premain-Class>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/maven/**</exclude>
+                                <exclude>META-INF/services/*</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.pmw.tinylog</pattern>
+                            <shadedPattern>com.github.gilday.org.pmw.tinylog</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
