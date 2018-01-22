@@ -3,9 +3,18 @@ package com.github.gilday.junit;
 import static com.github.dockerjava.api.model.AccessMode.ro;
 import static java.util.concurrent.CompletableFuture.runAsync;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
@@ -34,6 +43,8 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
 
     private static final String KEY_CONTAINER_ID = "CONTAINER-ID";
     private static final String KEY_ENDPOINT = "ENDPOINT";
+    private static final String KEY_JMX_CONNECTOR = "JMX-CONNECTOR";
+    private static final String KEY_MBEAN_SERVER_CONNECTION = "MBEAN-SERVER-CONNECTION";
 
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
 
@@ -49,14 +60,24 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
 
         // CREATE CONTAINER
         final Volume volume = new Volume("/agent.jar");
-        final ExposedPort exposedPort = ExposedPort.tcp(8080);
+        final ExposedPort exposedWebPort = ExposedPort.tcp(8080);
+        final ExposedPort exposedJMXPort = ExposedPort.tcp(9010);
         final Ports ports = new Ports();
-        ports.bind(exposedPort, Ports.Binding.empty());
+        ports.bind(exposedJMXPort, Ports.Binding.bindPort(9010));
+        ports.bind(exposedWebPort, Ports.Binding.empty());
 
         final CreateContainerCmd cmd = docker.createContainerCmd(image)
             .withEntrypoint("java")
-            .withCmd("-javaagent:/agent.jar", "-jar", "/webgoat.jar")
-            .withExposedPorts(exposedPort)
+            .withCmd(
+                "-javaagent:/agent.jar",
+                "-Dcom.sun.management.jmxremote.host=0.0.0.0",
+                "-Dcom.sun.management.jmxremote.port=9010",
+                "-Dcom.sun.management.jmxremote.authenticate=false",
+                "-Dcom.sun.management.jmxremote.ssl=false",
+                "-Dcom.sun.management.jmxremote.rmi.port=9010",
+                "-Djava.rmi.server.hostname=0.0.0.0",
+                "-jar", "/webgoat.jar")
+            .withExposedPorts(exposedJMXPort, exposedWebPort)
             .withPortBindings(ports)
             .withBinds(new Bind(System.getProperty("how-to-java-instrument-jar"), volume, ro));
         final CreateContainerResponse container = cmd.exec();
@@ -66,22 +87,17 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
         // STORE ID IN TEST CONTEXT
         store(ctx).put(KEY_CONTAINER_ID, id);
 
-        // GET ENDPOINT
+        // GET JMX CONNECTION AND WEB ENDPOINT
         final InspectContainerResponse inspect = docker.inspectContainerCmd(id).exec();
-        final Ports.Binding[] bindings = inspect.getNetworkSettings().getPorts().getBindings().get(exposedPort);
-        if (bindings.length != 1) {
-            throw new TestFrameworkException("Expected exactly one port binding");
-        }
-        final Endpoint endpoint = Endpoint.of(
-            InetAddresses.forString(bindings[0].getHostIp()),
-            Integer.valueOf(bindings[0].getHostPortSpec())
-        );
-        store(ctx).put(KEY_ENDPOINT, endpoint);
+        final Map<ExposedPort, Ports.Binding[]> bindings = inspect.getNetworkSettings().getPorts().getBindings();
+        final Endpoint jmx = endpointFromBinding(bindings.get(exposedJMXPort));
+        final Endpoint web = endpointFromBinding(bindings.get(exposedWebPort));
+        store(ctx).put(KEY_ENDPOINT, web);
 
         // WAIT FOR SOCKET LISTEN
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         runAsync(() -> {
-            while (!endpoint.isListening()) {
+            while (!jmx.isListening() && !web.isListening()) {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -93,15 +109,45 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
         try {
             final boolean termination = executor.awaitTermination(20, TimeUnit.SECONDS);
             if (!termination) {
-                throw new TestFrameworkException("Timeout waiting for container to listen at " + endpoint);
+                throw new TestFrameworkException("Timeout waiting for container to listen on web port " + web + " and jmx port " + jmx);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+
+        // ESTABLISH JMX CONNECTION
+        final JMXServiceURL jmxURL;
+        try {
+            jmxURL = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + jmx.host().getHostName() + ":" + jmx.port() + "/jmxrmi");
+        } catch (MalformedURLException e) {
+            throw new TestFrameworkException("Bad JMX URL", e);
+        }
+        final JMXConnector connector;
+        try {
+            connector = JMXConnectorFactory.connect(jmxURL);
+        } catch (IOException e) {
+            throw new TestFrameworkException("Unable to connect to JMX URL " + jmxURL, e);
+        }
+        store(ctx).put(KEY_JMX_CONNECTOR, connector);
+        final MBeanServerConnection mBeanServerConnection;
+        try {
+            mBeanServerConnection = connector.getMBeanServerConnection();
+        } catch (IOException e) {
+            throw new TestFrameworkException("Unable to retrieve MBeanServerConnection", e);
+        }
+        store(ctx).put(KEY_MBEAN_SERVER_CONNECTION, mBeanServerConnection);
     }
 
     @Override
     public void afterTestExecution(final ExtensionContext ctx) {
+        final JMXConnector connector = store(ctx).get(KEY_JMX_CONNECTOR, JMXConnector.class);
+        if (connector != null) {
+            try {
+                connector.close();
+            } catch (IOException e) {
+                throw new TestFrameworkException("Unable to close JMXConnector", e);
+            }
+        }
         final String id = store(ctx).get(KEY_CONTAINER_ID, String.class);
         if (id != null) {
             docker.stopContainerCmd(id).exec();
@@ -111,15 +157,35 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
 
     @Override
     public boolean supportsParameter(final ParameterContext parameterCtx, final ExtensionContext ctx) throws ParameterResolutionException {
-        return parameterCtx.getParameter().getType().equals(Endpoint.class);
+        final Class<?> type = parameterCtx.getParameter().getType();
+        return type.equals(Endpoint.class) || type.equals(MBeanServerConnection.class);
     }
 
     @Override
     public Object resolveParameter(final ParameterContext parameterCtx, final ExtensionContext ctx) throws ParameterResolutionException {
-        return store(ctx).get(KEY_ENDPOINT, Endpoint.class);
+        final Class<?> type = parameterCtx.getParameter().getType();
+        if (type.equals(MBeanServerConnection.class)) {
+            return store(ctx).get(KEY_MBEAN_SERVER_CONNECTION, MBeanServerConnection.class);
+        }
+        if (type.equals(Endpoint.class)) {
+            return store(ctx).get(KEY_ENDPOINT, Endpoint.class);
+        }
+        throw new IllegalArgumentException("parameter context is not supported");
     }
 
     private ExtensionContext.Store store(ExtensionContext ctx) {
         return ctx.getStore(Namespace.create(getClass(), ctx));
+    }
+
+    private Endpoint endpointFromBinding(final Ports.Binding[] bindings) {
+        if (bindings.length != 1) {
+            throw new TestFrameworkException("Expected exactly one port binding");
+        }
+        return Endpoint.of(
+            bindings[0].getHostIp().equals("0.0.0.0")
+                ? InetAddress.getLoopbackAddress()
+                : InetAddresses.forString(bindings[0].getHostIp()),
+            Integer.valueOf(bindings[0].getHostPortSpec())
+        );
     }
 }
