@@ -1,5 +1,8 @@
 package com.github.gilday;
 
+import static net.bytebuddy.matcher.ElementMatchers.is;
+import static net.bytebuddy.matcher.ElementMatchers.none;
+
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 
@@ -10,6 +13,9 @@ import javax.management.MBeanServer;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
+import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.method.MethodDescription;
 import org.pmw.tinylog.Logger;
 
 public class Agent {
@@ -17,11 +23,16 @@ public class Agent {
     public static void premain(final String args, final Instrumentation instrumentation) {
         Logger.info("PRE-MAIN");
         registerMBean();
-    }
 
-    public static void agentmain(final String args, final Instrumentation instrumentation) {
-        Logger.info("AGENT-MAIN");
-        registerMBean();
+        new AgentBuilder.Default()
+            .ignore(none())
+            .disableClassFormatChanges()
+            .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .type(is(String.class))
+            .transform((builder, typeDescription, classLoader, javaModule) ->
+                builder.visit(Advice.to(LogAdvice.class).on(MethodDescription::isConstructor))
+            )
+            .installOn(instrumentation);
     }
 
     private static void registerMBean() {

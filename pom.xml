@@ -17,6 +17,7 @@
 
         <!-- dependencies -->
         <versions.assertj-core>3.9.0</versions.assertj-core>
+        <versions.byte-buddy>1.7.9</versions.byte-buddy>
         <versions.docker-java>3.0.14</versions.docker-java>
         <versions.guava>23.6-jre</versions.guava>
         <versions.junit-jupiter>5.0.2</versions.junit-jupiter>
@@ -42,6 +43,33 @@
     </properties>
 
     <dependencies>
+        <!-- ************************* -->
+        <!-- AGENT DEPENDENCIES -->
+        <!-- ************************* -->
+        <!-- BYTE BUDDY -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${versions.byte-buddy}</version>
+        </dependency>
+        <!-- LOMBOK -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${versions.lombok}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- TINYLOG -->
+        <dependency>
+            <groupId>org.tinylog</groupId>
+            <artifactId>tinylog</artifactId>
+            <version>${versions.tinylog}</version>
+        </dependency>
+
+
+        <!-- ************************* -->
+        <!-- TEST DEPENDENCIES -->
+        <!-- ************************* -->
         <!-- ASSERTJ -->
         <dependency>
             <groupId>org.assertj</groupId>
@@ -74,19 +102,6 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${versions.junit-jupiter}</version>
             <scope>test</scope>
-        </dependency>
-        <!-- LOMBOK -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${versions.lombok}</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- TINYLOG -->
-        <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>tinylog</artifactId>
-            <version>${versions.tinylog}</version>
         </dependency>
     </dependencies>
 
@@ -223,6 +238,7 @@
                         <manifestEntries>
                             <Agent-Class>com.github.gilday.Agent</Agent-Class>
                             <Premain-Class>com.github.gilday.Agent</Premain-Class>
+                            <Can-Retransform-Classes>true</Can-Retransform-Classes>
                         </manifestEntries>
                     </archive>
                 </configuration>
