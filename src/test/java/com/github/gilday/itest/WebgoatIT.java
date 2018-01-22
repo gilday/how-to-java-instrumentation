@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * Integration test for a jetty application
  */
 @ExtendWith(WebgoatContainerExtension.class)
-class WebgoatTest {
+class WebgoatIT {
 
     @Test void it_instruments_webgoat(final Endpoint endpoint, final MBeanServerConnection mBeanServerConnection) {
         assertThat(endpoint.isListening()).isTrue();

@@ -31,13 +31,13 @@
         <versions.plugins.maven-compiler-plugin>3.7.0</versions.plugins.maven-compiler-plugin>
         <versions.plugins.maven-deploy-plugin>2.8.2</versions.plugins.maven-deploy-plugin>
         <versions.plugins.maven-enforcer-plugin>3.0.0-M1</versions.plugins.maven-enforcer-plugin>
-        <versions.plugins.maven-failsafe-plugin>2.20.1</versions.plugins.maven-failsafe-plugin>
+        <versions.plugins.maven-failsafe-plugin>2.19.1</versions.plugins.maven-failsafe-plugin>
         <versions.plugins.maven-install-plugin>2.5.2</versions.plugins.maven-install-plugin>
         <versions.plugins.maven-jar-plugin>3.0.2</versions.plugins.maven-jar-plugin>
         <versions.plugins.maven-resources-plugin>3.0.2</versions.plugins.maven-resources-plugin>
         <versions.plugins.maven-shade-plugin>3.1.0</versions.plugins.maven-shade-plugin>
         <versions.plugins.maven-site-plugin>3.6</versions.plugins.maven-site-plugin>
-        <versions.plugins.maven-surefire-plugin>2.20</versions.plugins.maven-surefire-plugin>
+        <versions.plugins.maven-surefire-plugin>2.19.1</versions.plugins.maven-surefire-plugin>
         <versions.plugins.exec-maven-plugin>1.6.0</versions.plugins.exec-maven-plugin>
     </properties>
 
@@ -179,11 +179,42 @@
             </plugin>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <version>${versions.junit-platform}</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.slf4j</groupId>
+                                <artifactId>jcl-over-slf4j</artifactId>
+                            </exclusion>
+                            <exclusion>
+                                <groupId>org.slf4j</groupId>
+                                <artifactId>slf4j-api</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-jdk14</artifactId>
+                        <version>1.7.25</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <systemPropertyVariables>
                         <how-to-java-instrument-jar>${project.build.directory}/${project.build.finalName}.jar</how-to-java-instrument-jar>
                     </systemPropertyVariables>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>

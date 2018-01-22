@@ -1,15 +1,17 @@
 package com.github.gilday.junit;
 
 import static com.github.dockerjava.api.model.AccessMode.ro;
-import static java.util.concurrent.CompletableFuture.runAsync;
+import static com.github.gilday.junit.ThreadUtils.sleepOrDie;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
@@ -95,24 +97,16 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
         store(ctx).put(KEY_ENDPOINT, web);
 
         // WAIT FOR SOCKET LISTEN
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
-        runAsync(() -> {
-            while (!jmx.isListening() && !web.isListening()) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }, executor);
-        executor.shutdown();
         try {
-            final boolean termination = executor.awaitTermination(20, TimeUnit.SECONDS);
-            if (!termination) {
-                throw new TestFrameworkException("Timeout waiting for container to listen on web port " + web + " and jmx port " + jmx);
-            }
+            CompletableFuture
+                .allOf(jmx.pollForConnection(), web.pollForConnection())
+                .get(20, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            throw new TestFrameworkException("Unable to connect to JMX and web sockets", e);
+        } catch (TimeoutException e) {
+            throw new TestFrameworkException("Timeout connecting to JMX and web sockets", e);
         }
 
         // ESTABLISH JMX CONNECTION
@@ -124,9 +118,26 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
         }
         final JMXConnector connector;
         try {
-            connector = JMXConnectorFactory.connect(jmxURL);
-        } catch (IOException e) {
-            throw new TestFrameworkException("Unable to connect to JMX URL " + jmxURL, e);
+            connector = CompletableFuture
+                .supplyAsync(() -> {
+                    // naive retry loop
+                    while (true) {
+                        try {
+                            return JMXConnectorFactory.connect(jmxURL);
+                        } catch (IOException e) {
+                            // continue
+                        }
+                        sleepOrDie(Duration.ofSeconds(1));
+                    }
+                })
+                .get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new TestFrameworkException("Interrupted while connecting to container JMX", e);
+        } catch (ExecutionException e) {
+            throw new TestFrameworkException("Error connecting to container JMX", e);
+        } catch (TimeoutException e) {
+            throw new TestFrameworkException("Timeout connecting to container JMX", e);
         }
         store(ctx).put(KEY_JMX_CONNECTOR, connector);
         final MBeanServerConnection mBeanServerConnection;

@@ -3,6 +3,7 @@ package com.github.gilday.junit;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.concurrent.CompletableFuture;
 
 import lombok.Value;
 import lombok.experimental.Accessors;
@@ -23,5 +24,17 @@ public class Endpoint {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public CompletableFuture<Void> pollForConnection() {
+        return CompletableFuture.runAsync(() -> {
+            while (!isListening()) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
     }
 }
