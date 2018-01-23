@@ -1,4 +1,4 @@
-package com.github.gilday.hooks;
+package com.github.gilday.bootstrap;
 
 /**
  * A monotonically increasing counter metric

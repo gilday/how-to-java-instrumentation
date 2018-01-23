@@ -1,0 +1,180 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+     <modelVersion>4.0.0</modelVersion>
+
+     <parent>
+        <groupId>com.github.gilday</groupId>
+        <artifactId>how-to-java-instrumentation</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>how-to-java-instrumentation-agent</artifactId>
+
+    <dependencies>
+        <!-- ************************* -->
+        <!-- AGENT DEPENDENCIES -->
+        <!-- ************************* -->
+        <!-- PROJECT DEPENDENCIES -->
+        <dependency>
+            <groupId>com.github.gilday</groupId>
+            <artifactId>how-to-java-instrumentation-bootstrap</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- BYTE BUDDY -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+        </dependency>
+        <!-- LOMBOK -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- TINYLOG -->
+        <dependency>
+            <groupId>org.tinylog</groupId>
+            <artifactId>tinylog</artifactId>
+        </dependency>
+
+
+        <!-- ************************* -->
+        <!-- TEST DEPENDENCIES -->
+        <!-- ************************* -->
+        <!-- ASSERTJ -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+        </dependency>
+        <!-- DOCKER-JAVA -->
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- GUAVA -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- JUNIT -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.github.gilday</groupId>
+                                    <artifactId>how-to-java-instrumentation-bootstrap</artifactId>
+                                    <version>${project.version}</version>
+                                    <outputDirectory>${project.build.directory}/classes/lib</outputDirectory>
+                                    <destFileName>bootstrap.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <version>${versions.junit-platform}</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.slf4j</groupId>
+                                <artifactId>jcl-over-slf4j</artifactId>
+                            </exclusion>
+                            <exclusion>
+                                <groupId>org.slf4j</groupId>
+                                <artifactId>slf4j-api</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-jdk14</artifactId>
+                        <version>${versions.slf4j}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <systemPropertyVariables>
+                        <how-to-java-instrument-jar>${project.build.directory}/${project.build.finalName}.jar</how-to-java-instrument-jar>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Agent-Class>com.github.gilday.Agent</Agent-Class>
+                            <Premain-Class>com.github.gilday.Agent</Premain-Class>
+                            <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/maven/**</exclude>
+                                <exclude>META-INF/services/*</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.pmw.tinylog</pattern>
+                            <shadedPattern>com.github.gilday.org.pmw.tinylog</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

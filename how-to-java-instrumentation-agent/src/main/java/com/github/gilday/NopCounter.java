@@ -1,6 +1,6 @@
 package com.github.gilday;
 
-import com.github.gilday.hooks.Counter;
+import com.github.gilday.bootstrap.Counter;
 
 public class NopCounter implements Counter {
 

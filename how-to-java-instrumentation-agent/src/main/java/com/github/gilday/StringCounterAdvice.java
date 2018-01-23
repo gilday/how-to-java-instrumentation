@@ -1,7 +1,7 @@
 package com.github.gilday;
 
-import com.github.gilday.hooks.Counter;
-import com.github.gilday.hooks.ServiceLocator;
+import com.github.gilday.bootstrap.Counter;
+import com.github.gilday.bootstrap.ServiceLocator;
 import net.bytebuddy.asm.Advice.OnMethodExit;
 
 /**
@@ -10,8 +10,6 @@ import net.bytebuddy.asm.Advice.OnMethodExit;
 class StringCounterAdvice {
     @OnMethodExit
     static void exit() {
-        System.out.println("incrementing counter");
         ServiceLocator.stringCounter.inc();
-        System.out.println("incremented counter");
     }
 }

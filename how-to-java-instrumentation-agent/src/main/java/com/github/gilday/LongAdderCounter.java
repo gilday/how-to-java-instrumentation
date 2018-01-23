@@ -2,7 +2,7 @@ package com.github.gilday;
 
 import java.util.concurrent.atomic.LongAdder;
 
-import com.github.gilday.hooks.Counter;
+import com.github.gilday.bootstrap.Counter;
 
 /**
  * Implementation of {@link Counter} which increments a {@link LongAdder}

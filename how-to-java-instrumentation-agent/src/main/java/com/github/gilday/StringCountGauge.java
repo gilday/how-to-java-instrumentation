@@ -3,7 +3,7 @@ package com.github.gilday;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import com.github.gilday.hooks.Counter;
+import com.github.gilday.bootstrap.Counter;
 import lombok.RequiredArgsConstructor;
 
 /**
