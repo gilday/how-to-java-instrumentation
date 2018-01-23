@@ -3,9 +3,13 @@ package com.github.gilday;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import com.github.gilday.hooks.Counter;
+import lombok.RequiredArgsConstructor;
+
 /**
- * Implementation of {@link StringCountGaugeMXBean}
+ * Implementation of {@link StringCountGaugeMXBean} which wraps a {@link Counter}
  */
+@RequiredArgsConstructor
 public class StringCountGauge implements StringCountGaugeMXBean {
 
     public static ObjectName name() {
@@ -16,8 +20,8 @@ public class StringCountGauge implements StringCountGaugeMXBean {
         }
     }
 
+    private final Counter counter;
+
     @Override
-    public int created() {
-        return 0; // TODO
-    }
+    public long created() { return counter.get(); }
 }

@@ -238,6 +238,7 @@
                         <manifestEntries>
                             <Agent-Class>com.github.gilday.Agent</Agent-Class>
                             <Premain-Class>com.github.gilday.Agent</Premain-Class>
+                            <Boot-Class-Path>agent.jar</Boot-Class-Path>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                         </manifestEntries>
                     </archive>

@@ -7,5 +7,5 @@ public interface StringCountGaugeMXBean {
     /**
      * @return number of {@link java.lang.String} instances created
      */
-    int created();
+    long created();
 }

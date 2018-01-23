@@ -22,6 +22,6 @@ class WebgoatIT {
         assertThat(endpoint.isListening()).isTrue();
         final StringCountGaugeMXBean stringCountGaugeMXBean = MBeanServerInvocationHandler.newProxyInstance(mBeanServerConnection, StringCountGauge.name(), StringCountGaugeMXBean.class, true);
 
-        assertThat(stringCountGaugeMXBean.created()).isEqualTo(0);
+        assertThat(stringCountGaugeMXBean.created()).isGreaterThan(0);
     }
 }
