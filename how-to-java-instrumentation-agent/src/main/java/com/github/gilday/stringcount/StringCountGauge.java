@@ -1,9 +1,10 @@
-package com.github.gilday;
+package com.github.gilday.stringcount;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import com.github.gilday.bootstrap.Counter;
+import com.github.gilday.AgentException;
+import com.github.gilday.bootstrap.stringcount.Counter;
 import lombok.RequiredArgsConstructor;
 
 /**

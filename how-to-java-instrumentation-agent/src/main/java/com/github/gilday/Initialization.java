@@ -10,6 +10,11 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import com.github.gilday.bootstrap.ServiceLocator;
+import com.github.gilday.context.ThreadLocalRequestContextManager;
+import com.github.gilday.stringcount.LongAdderCounter;
+import com.github.gilday.stringcount.RequestContextAwareCounter;
+import com.github.gilday.stringcount.StringCountGauge;
+import com.github.gilday.stringcount.StringCountGaugeMXBean;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -21,7 +26,7 @@ class Initialization {
 
     static void initialize() {
         configureServiceLocator();
-        final StringCountGauge gauge = new StringCountGauge(ServiceLocator.stringCounter);
+        final StringCountGauge gauge = new StringCountGauge(ServiceLocator.counter);
         registerMBean(gauge);
     }
 
@@ -29,7 +34,8 @@ class Initialization {
      * wires dependencies and configures the global {@link ServiceLocator}
      */
     private static void configureServiceLocator() {
-        ServiceLocator.stringCounter = new LongAdderCounter();
+        ServiceLocator.requestContextManager = new ThreadLocalRequestContextManager();
+        ServiceLocator.counter = new LongAdderCounter();
     }
 
     /**

@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
 
-import com.github.gilday.StringCountGauge;
-import com.github.gilday.StringCountGaugeMXBean;
+import com.github.gilday.stringcount.StringCountGauge;
+import com.github.gilday.stringcount.StringCountGaugeMXBean;
 import com.github.gilday.junit.Endpoint;
 import com.github.gilday.junit.WebgoatContainerExtension;
 import org.junit.jupiter.api.Test;

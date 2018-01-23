@@ -1,4 +1,4 @@
-package com.github.gilday;
+package com.github.gilday.stringcount;
 
 /**
  * Gauge which returns the current "Strings created" count

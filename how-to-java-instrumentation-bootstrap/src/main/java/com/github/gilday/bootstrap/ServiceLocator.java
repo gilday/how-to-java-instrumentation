@@ -1,5 +1,7 @@
 package com.github.gilday.bootstrap;
 
+import com.github.gilday.bootstrap.context.RequestContextManager;
+import com.github.gilday.bootstrap.stringcount.Counter;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -9,5 +11,6 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ServiceLocator {
-    public static Counter stringCounter;
+    public static Counter counter;
+    public static RequestContextManager requestContextManager;
 }

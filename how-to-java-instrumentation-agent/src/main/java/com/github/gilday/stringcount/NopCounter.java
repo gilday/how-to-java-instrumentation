@@ -1,10 +1,8 @@
-package com.github.gilday;
+package com.github.gilday.stringcount;
 
-import com.github.gilday.bootstrap.Counter;
+import com.github.gilday.bootstrap.stringcount.Counter;
 
 public class NopCounter implements Counter {
-
-    public static final Counter instance = new NopCounter();
 
     @Override
     public void inc() { }

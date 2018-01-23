@@ -1,13 +1,13 @@
-package com.github.gilday;
+package com.github.gilday.stringcount;
 
 import java.util.concurrent.atomic.LongAdder;
 
-import com.github.gilday.bootstrap.Counter;
+import com.github.gilday.bootstrap.stringcount.Counter;
 
 /**
  * Implementation of {@link Counter} which increments a {@link LongAdder}
  */
-class LongAdderCounter implements Counter {
+public class LongAdderCounter implements Counter {
 
     private final LongAdder value = new LongAdder();
 

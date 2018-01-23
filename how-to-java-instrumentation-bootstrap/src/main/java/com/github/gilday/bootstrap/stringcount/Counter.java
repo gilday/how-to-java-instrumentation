@@ -1,4 +1,4 @@
-package com.github.gilday.bootstrap;
+package com.github.gilday.bootstrap.stringcount;
 
 /**
  * A monotonically increasing counter metric
