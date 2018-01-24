@@ -38,6 +38,7 @@ class WebgoatIT {
         // GIVEN a server that has not yet served any requests
         final StringsAllocatedGaugeMXBean stringsAllocatedGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class);
         assumeTrue(stringsAllocatedGaugeMXBean.requests().length == 0);
+        sleep(4000); // sleep a bit to make sure the web server is ready to serve requests
 
         // WHEN make an HTTP request to the server
         final HttpUrl url = new HttpUrl.Builder()
@@ -49,7 +50,7 @@ class WebgoatIT {
         httpGET(url);
 
         // AND sleep a bit to make sure the server registers the count after serving the response
-        sleep(2000);
+        sleep(200);
 
         // THEN server records a strings allocation count for the initial request and redirect to login page
         final StringsAllocatedBean[] requests = stringsAllocatedGaugeMXBean.requests();
@@ -59,7 +60,9 @@ class WebgoatIT {
     }
 
     private static void httpGET(final HttpUrl url) {
-        final OkHttpClient client = new OkHttpClient();
+        final OkHttpClient client = new OkHttpClient.Builder()
+            .retryOnConnectionFailure(true)
+            .build();
         final Request request = new Request.Builder()
             .url(url)
             .get()

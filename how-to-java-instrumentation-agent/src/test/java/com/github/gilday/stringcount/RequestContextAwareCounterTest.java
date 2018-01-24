@@ -39,14 +39,14 @@ class RequestContextAwareCounterTest {
         // GIVEN the context manager returns an existing context
         final RequestContext ctx = mock(RequestContext.class);
         when(ctxManager.get()).thenReturn(ctx);
-        final Counter inner = new SimpleCounter();
+        final CounterWithGauge inner = new SimpleCounter();
         counter = new RequestContextAwareCounter(() -> inner, ctxManager, clock, store);
         when(ctx.get(counter.key)).thenReturn(inner);
 
         // WHEN increment twice then get
         counter.inc();
         counter.inc();
-        final long value = counter.get();
+        final long value = counter.sample();
 
         // THEN counter is incremented to 2
         assertThat(value).isEqualTo(2);
@@ -55,7 +55,7 @@ class RequestContextAwareCounterTest {
     @Test
     void it_does_not_increment_if_no_request_context_available() {
         // GIVEN the context manager returns null context
-        final Counter inner = mock(Counter.class);
+        final CounterWithGauge inner = mock(CounterWithGauge.class);
         counter = new RequestContextAwareCounter(() -> inner, ctxManager, clock, store);
         when(ctxManager.get()).thenReturn(null);
 
@@ -69,19 +69,19 @@ class RequestContextAwareCounterTest {
     @Test
     void it_fails_when_retrieve_counter_value_outside_of_a_context() {
         // GIVEN the context manager returns null context
-        final Counter inner = mock(Counter.class);
+        final CounterWithGauge inner = mock(CounterWithGauge.class);
         counter = new RequestContextAwareCounter(() -> inner, ctxManager, clock, store);
         when(ctxManager.get()).thenReturn(null);
 
         // EXPECT retrieve to throw
-        assertThatThrownBy(() -> counter.get()).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> counter.sample()).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void it_stores_new_strings_allocated_record_when_context_closes() {
         // GIVEN a counter with 100L string allocations counted in the current context
-        final Counter inner = mock(Counter.class);
-        when(inner.get()).thenReturn(100L);
+        final CounterWithGauge inner = mock(CounterWithGauge.class);
+        when(inner.sample()).thenReturn(100L);
         counter = new RequestContextAwareCounter(() -> inner, ctxManager, clock, store);
         final RequestContext ctx = mock(RequestContext.class);
         when(ctx.get(counter.key)).thenReturn(inner);

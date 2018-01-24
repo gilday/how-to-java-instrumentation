@@ -12,6 +12,8 @@ import javax.management.ObjectName;
 
 import com.github.gilday.bootstrap.ServiceLocator;
 import com.github.gilday.context.ThreadLocalRequestContextManager;
+import com.github.gilday.stringcount.LongAdderCounter;
+import com.github.gilday.stringcount.MultiplexCounter;
 import com.github.gilday.stringcount.RequestContextAwareCounter;
 import com.github.gilday.stringcount.SimpleCounter;
 import com.github.gilday.stringcount.StringsAllocatedRecordStore;
@@ -31,15 +33,20 @@ class Initialization {
         final EventBus eventBus = new EventBus();
         final StringsAllocatedRecordStore store = new StringsAllocatedRecordStore();
         final ThreadLocalRequestContextManager ctxManager = new ThreadLocalRequestContextManager(eventBus);
-        final RequestContextAwareCounter counter = new RequestContextAwareCounter(SimpleCounter::new, ctxManager, Clock.systemUTC(), store);
-        eventBus.register(counter);
+        final RequestContextAwareCounter perRequestCounter = new RequestContextAwareCounter(SimpleCounter::new, ctxManager, Clock.systemUTC(), store);
+        eventBus.register(perRequestCounter);
+        final LongAdderCounter systemWideCounter = new LongAdderCounter();
+        final MultiplexCounter counter = MultiplexCounter.of(
+            perRequestCounter,
+            systemWideCounter
+        );
 
         // expose singletons to ServiceLocator
         ServiceLocator.requestContextManager = ctxManager;
         ServiceLocator.counter = counter;
 
         // Register JMX MBeans to expose Agent metrics to external management clients
-        final StringsAllocatedGauge gauge = new StringsAllocatedGauge(counter, store);
+        final StringsAllocatedGauge gauge = new StringsAllocatedGauge(systemWideCounter, store);
         registerMBean(gauge);
     }
 

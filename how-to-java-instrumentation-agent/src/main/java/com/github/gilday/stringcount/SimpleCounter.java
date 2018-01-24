@@ -1,12 +1,10 @@
 package com.github.gilday.stringcount;
 
-import com.github.gilday.bootstrap.stringcount.Counter;
-
 /**
  * thread-unsafe counter simply wraps an int. Should only be used when the count will only be incremented from a single
  * thread
  */
-public class SimpleCounter implements Counter {
+public class SimpleCounter implements CounterWithGauge {
 
     private int value;
 
@@ -14,5 +12,5 @@ public class SimpleCounter implements Counter {
     public void inc() { value++; }
 
     @Override
-    public long get() { return value; }
+    public long sample() { return value; }
 }

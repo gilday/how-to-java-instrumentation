@@ -10,15 +10,14 @@ import com.github.gilday.context.RequestContextClosedEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
-import org.pmw.tinylog.Logger;
 
 /**
  * Decorates a {@link Counter} such that only strings created within a given {@link RequestContext} will be counted
  */
 @RequiredArgsConstructor
-public class RequestContextAwareCounter implements Counter {
+public class RequestContextAwareCounter implements CounterWithGauge {
 
-    @VisibleForTesting final Symbol<Counter> key = Symbol.of("counter");
+    @VisibleForTesting final Symbol<CounterWithGauge> key = Symbol.of("counter");
 
     private final CounterFactory factory;
     private final RequestContextManager ctxManager;
@@ -36,28 +35,28 @@ public class RequestContextAwareCounter implements Counter {
     }
 
     @Override
-    public long get() {
+    public long sample() {
         final RequestContext ctx = ctxManager.get();
         if (ctx == null) {
             throw new IllegalStateException("Cannot retrieve counter value because no context registered");
         }
-        return lazyGet(ctx).get();
+        return lazyGet(ctx).sample();
     }
 
     @Subscribe public void onRequestContextClosed(final RequestContextClosedEvent event) {
-        final Counter counter = event.ctx().get(key);
+        final CounterWithGauge counter = event.ctx().get(key);
         // counter can be null because it is instantiated lazily
         final int count = counter == null
             ? 0
-            : (int) counter.get();
+            : (int) counter.sample();
         store.add(StringsAllocated.of(clock.instant(), count));
     }
 
     /**
      * gets (and if necessary, lazily creates) the counter in the given context
      */
-    private synchronized Counter lazyGet(final RequestContext ctx) {
-        Counter counter = ctx.get(key);
+    private synchronized CounterWithGauge lazyGet(final RequestContext ctx) {
+        CounterWithGauge counter = ctx.get(key);
         if (counter == null) {
             counter = factory.create();
             ctx.put(key, counter);

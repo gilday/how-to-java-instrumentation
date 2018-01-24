@@ -5,6 +5,7 @@ import javax.management.ObjectName;
 
 import com.github.gilday.AgentException;
 import com.github.gilday.bootstrap.stringcount.Counter;
+import com.github.gilday.stringcount.LongGauge;
 import com.github.gilday.stringcount.StringsAllocatedRecordStore;
 import lombok.RequiredArgsConstructor;
 
@@ -22,11 +23,11 @@ public class StringsAllocatedGauge implements StringsAllocatedGaugeMXBean {
         }
     }
 
-    private final Counter counter;
+    private final LongGauge systemWideStringsAllocatedGauge;
     private final StringsAllocatedRecordStore store;
 
     @Override
-    public long allocated() { return counter.get(); }
+    public long allocated() { return systemWideStringsAllocatedGauge.sample(); }
 
     @Override
     public StringsAllocatedBean[] requests() {
