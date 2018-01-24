@@ -4,7 +4,11 @@ import com.github.gilday.bootstrap.context.RequestContext;
 import com.github.gilday.bootstrap.context.RequestContextManager;
 import com.github.gilday.bootstrap.context.Symbol;
 import com.github.gilday.bootstrap.stringcount.Counter;
+import com.github.gilday.context.RequestContextClosedEvent;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
+import org.pmw.tinylog.Logger;
 
 /**
  * Decorates a {@link Counter} such that only strings created within a given {@link RequestContext} will be counted
@@ -12,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RequestContextAwareCounter implements Counter {
 
-    private final Symbol<Counter> key = Symbol.of("counter");
+    @VisibleForTesting final Symbol<Counter> key = Symbol.of("counter");
 
     private final CounterFactory factory;
     private final RequestContextManager ctxManager;
@@ -36,6 +40,14 @@ public class RequestContextAwareCounter implements Counter {
         return lazyGet(ctx).get();
     }
 
+    @Subscribe public void onRequestContextClosed(final RequestContextClosedEvent event) {
+        final Counter counter = event.ctx().get(key);
+        if (counter == null) {
+            return; // nothing to do here
+        }
+        Logger.info("counted {} strings created during request", counter.get());
+    }
+
     /**
      * gets (and if necessary, lazily creates) the counter in the given context
      */
@@ -43,8 +55,8 @@ public class RequestContextAwareCounter implements Counter {
         Counter counter = ctx.get(key);
         if (counter == null) {
             counter = factory.create();
+            ctx.put(key, counter);
         }
-        ctx.put(key, counter);
         return counter;
     }
 }

@@ -31,7 +31,9 @@ class RequestContextAwareCounterTest {
         // GIVEN the context manager returns an existing context
         final RequestContext ctx = mock(RequestContext.class);
         when(ctxManager.get()).thenReturn(ctx);
-        counter = new RequestContextAwareCounter(NaiveCounter::new, ctxManager);
+        final Counter inner = new ThreadUnsafeCounter();
+        counter = new RequestContextAwareCounter(() -> inner, ctxManager);
+        when(ctx.get(counter.key)).thenReturn(inner);
 
         // WHEN increment twice then get
         counter.inc();
@@ -67,17 +69,4 @@ class RequestContextAwareCounterTest {
         assertThatThrownBy(() -> counter.get()).isInstanceOf(IllegalStateException.class);
     }
 
-    /**
-     * thread-unsafe counter for testing
-     */
-    private static class NaiveCounter implements Counter {
-
-        private int value;
-
-        @Override
-        public void inc() { value++; }
-
-        @Override
-        public long get() { return value; }
-    }
 }

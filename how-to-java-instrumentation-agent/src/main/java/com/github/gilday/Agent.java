@@ -4,7 +4,7 @@ import static net.bytebuddy.matcher.ElementMatchers.hasMethodName;
 import static net.bytebuddy.matcher.ElementMatchers.hasSuperType;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
-import static net.bytebuddy.matcher.ElementMatchers.isSubTypeOf;
+import static net.bytebuddy.matcher.ElementMatchers.nameEndsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 
@@ -16,14 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.jar.JarFile;
 
-import javax.servlet.Servlet;
-
 import com.github.gilday.context.RegisterRequestContextServletAdvice;
 import com.github.gilday.stringcount.StringCounterAdvice;
 import net.bytebuddy.agent.builder.AgentBuilder;
-import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.utility.JavaModule;
 import org.pmw.tinylog.Logger;
 
 /**
@@ -73,9 +68,8 @@ public class Agent {
                 .include(StringCounterAdvice.class.getClassLoader())
                 .advice(isConstructor(), StringCounterAdvice.class.getName())
             )
-            .type(hasSuperType(named("javax.servlet.Servlet")))
+            .type(hasSuperType(named("javax.servlet.Servlet").and(nameEndsWith("Servlet"))))
             .transform(new AgentBuilder.Transformer.ForAdvice()
-                .include(RegisterRequestContextServletAdvice.class.getClassLoader())
                 .advice(hasMethodName("service"), RegisterRequestContextServletAdvice.class.getName())
             )
             .installOn(instrumentation);

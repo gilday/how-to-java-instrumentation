@@ -15,6 +15,8 @@ import com.github.gilday.stringcount.LongAdderCounter;
 import com.github.gilday.stringcount.RequestContextAwareCounter;
 import com.github.gilday.stringcount.StringCountGauge;
 import com.github.gilday.stringcount.StringCountGaugeMXBean;
+import com.github.gilday.stringcount.ThreadUnsafeCounter;
+import com.google.common.eventbus.EventBus;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -34,8 +36,13 @@ class Initialization {
      * wires dependencies and configures the global {@link ServiceLocator}
      */
     private static void configureServiceLocator() {
-        ServiceLocator.requestContextManager = new ThreadLocalRequestContextManager();
-        ServiceLocator.counter = new LongAdderCounter();
+        final EventBus eventBus = new EventBus();
+        final ThreadLocalRequestContextManager ctxManager = new ThreadLocalRequestContextManager(eventBus);
+        final RequestContextAwareCounter counter = new RequestContextAwareCounter(ThreadUnsafeCounter::new, ctxManager);
+        eventBus.register(counter);
+
+        ServiceLocator.requestContextManager = ctxManager;
+        ServiceLocator.counter = counter;
     }
 
     /**

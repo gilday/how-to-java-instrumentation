@@ -2,6 +2,7 @@ package com.github.gilday.bootstrap.context;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -12,6 +13,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @Getter
 @RequiredArgsConstructor(staticName = "of")
+@ToString
 public class Symbol<T> {
     private final String name;
 }
