@@ -19,6 +19,7 @@ public class ThreadLocalRequestContextManager implements RequestContextManager {
 
     @Override
     public void create() {
+        System.out.println(getClass().getName() + " enter");
         final ContextCount pair = store.get();
         if (pair != null) {
             pair.inc(); // increment nested servlet count
@@ -31,6 +32,7 @@ public class ThreadLocalRequestContextManager implements RequestContextManager {
 
     @Override
     public void close() {
+        System.out.println(getClass().getName() + " exit");
         final ContextCount pair = store.get();
         if (pair == null) {
             throw new AgentException("No context registered");

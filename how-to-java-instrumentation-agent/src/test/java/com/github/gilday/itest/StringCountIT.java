@@ -11,30 +11,41 @@ import javax.management.MBeanServerConnection;
 
 import com.github.gilday.AgentException;
 import com.github.gilday.junit.Endpoint;
-import com.github.gilday.junit.WebgoatContainerExtension;
+import com.github.gilday.junit.Java8;
+import com.github.gilday.junit.ServletContainersTest;
+import com.github.gilday.junit.ServletContainersTestTemplateInvocationContextProvider;
 import com.github.gilday.stringcount.jmx.StringsAllocatedBean;
 import com.github.gilday.stringcount.jmx.StringsAllocatedGauge;
 import com.github.gilday.stringcount.jmx.StringsAllocatedGaugeMXBean;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Integration test for a jetty application
+ * Integration test for instrumenting a Java web application with String allocation counting
  */
-@ExtendWith(WebgoatContainerExtension.class)
-class WebgoatIT {
+@ExtendWith(ServletContainersTestTemplateInvocationContextProvider.class)
+class StringCountIT {
 
-    @Test
-    void it_instruments_webgoat_with_system_wide_string_allocation_count(final MBeanServerConnection mBeanServerConnection) {
+    @ServletContainersTest({
+        Java8.Tomcat7.class,
+        Java8.Tomcat8.class,
+        Java8.Tomcat9.class,
+        Java8.Jetty9_4.class
+    })
+    void it_records_system_wide_string_allocation_count(final MBeanServerConnection mBeanServerConnection) {
         final StringsAllocatedGaugeMXBean stringCountGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class, true);
         assertThat(stringCountGaugeMXBean.allocated()).isGreaterThan(0);
     }
 
-    @Test
-    void it_instruments_webgoat_with_per_request_string_allocation_count(final Endpoint endpoint, final MBeanServerConnection mBeanServerConnection) throws InterruptedException {
+    @ServletContainersTest({
+        Java8.Tomcat7.class,
+        Java8.Tomcat8.class,
+        Java8.Tomcat9.class,
+        Java8.Jetty9_4.class
+    })
+    void it_records_per_request_string_allocation_count(final Endpoint endpoint, @ServletContainersTest.Context final String context, final MBeanServerConnection mBeanServerConnection) throws InterruptedException {
         // GIVEN a server that has not yet served any requests
         final StringsAllocatedGaugeMXBean stringsAllocatedGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class);
         assumeTrue(stringsAllocatedGaugeMXBean.requests().length == 0);
@@ -45,16 +56,16 @@ class WebgoatIT {
             .scheme("http")
             .host(endpoint.host().getHostName())
             .port(endpoint.port())
-            .addPathSegment("WebGoat")
+            .addPathSegment(context)
             .build();
         httpGET(url);
 
         // AND sleep a bit to make sure the server registers the count after serving the response
         sleep(200);
 
-        // THEN server records a strings allocation count for the initial request and redirect to login page
+        // THEN server records a strings allocation count for the request
         final StringsAllocatedBean[] requests = stringsAllocatedGaugeMXBean.requests();
-        assertThat(requests).hasSize(2);
+        assertThat(requests).hasSize(1);
         // AND surely some strings were allocated to serve the requests
         assertThat(requests).allMatch(r -> r.getCount() > 0);
     }

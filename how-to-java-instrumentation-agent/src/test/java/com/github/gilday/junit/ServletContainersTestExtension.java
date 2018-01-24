@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
@@ -27,9 +28,10 @@ import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.Volume;
-import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.PullImageResultCallback;
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -39,50 +41,64 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 /**
- * Launches instrumented WebGoat java web application in a container. Shuts down the container after the test concludes
+ * Launches instrumented java servlet container in a docker container. Shuts down the docker container after the test
+ * concludes
  */
-public class WebgoatContainerExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
+@RequiredArgsConstructor
+class ServletContainersTestExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
 
     private static final String KEY_CONTAINER_ID = "CONTAINER-ID";
     private static final String KEY_ENDPOINT = "ENDPOINT";
     private static final String KEY_JMX_CONNECTOR = "JMX-CONNECTOR";
     private static final String KEY_MBEAN_SERVER_CONNECTION = "MBEAN-SERVER-CONNECTION";
 
-    private final DockerClient docker = DockerClientBuilder.getInstance().build();
+    private final DockerClient docker;
+    private final ServletContainerExecutionMetadata metadata;
 
     @Override
     public void beforeTestExecution(final ExtensionContext ctx) {
         // PULL CONTAINER IF NEEDED
-        final String image = "webgoat/webgoat-7.1";
         try {
-            docker.inspectImageCmd(image).exec();
+            docker.inspectImageCmd(metadata.image()).exec();
         } catch (final NotFoundException e) {
-            docker.pullImageCmd(image).exec(new PullImageResultCallback()).awaitSuccess();
+            docker.pullImageCmd(metadata.image()).exec(new PullImageResultCallback()).awaitSuccess();
         }
 
         // CREATE CONTAINER
         final Volume volume = new Volume("/agent.jar");
-        final ExposedPort exposedWebPort = ExposedPort.tcp(8080);
+        final ExposedPort exposedWebPort = ExposedPort.tcp(metadata.port());
         final ExposedPort exposedJMXPort = ExposedPort.tcp(9010);
         final Ports ports = new Ports();
         ports.bind(exposedJMXPort, Ports.Binding.bindPort(9010));
         ports.bind(exposedWebPort, Ports.Binding.empty());
 
-        final CreateContainerCmd cmd = docker.createContainerCmd(image)
-            .withEntrypoint("java")
+        final ImmutableList<String> standardJavaOpts = ImmutableList.of(
+            "-javaagent:/agent.jar",
+            "-Dcom.sun.management.jmxremote.host=0.0.0.0",
+            "-Dcom.sun.management.jmxremote.port=9010",
+            "-Dcom.sun.management.jmxremote.authenticate=false",
+            "-Dcom.sun.management.jmxremote.ssl=false",
+            "-Dcom.sun.management.jmxremote.rmi.port=9010",
+            "-Djava.rmi.server.hostname=0.0.0.0"
+        );
+
+        CreateContainerCmd create = docker.createContainerCmd(metadata.image())
             .withCmd(
-                "-javaagent:/agent.jar",
-                "-Dcom.sun.management.jmxremote.host=0.0.0.0",
-                "-Dcom.sun.management.jmxremote.port=9010",
-                "-Dcom.sun.management.jmxremote.authenticate=false",
-                "-Dcom.sun.management.jmxremote.ssl=false",
-                "-Dcom.sun.management.jmxremote.rmi.port=9010",
-                "-Djava.rmi.server.hostname=0.0.0.0",
-                "-jar", "/webgoat.jar")
+            )
+            .withEnv(metadata.javaOptsEnvVariableName() + "=" + standardJavaOpts.stream().collect(Collectors.joining(" ")))
             .withExposedPorts(exposedJMXPort, exposedWebPort)
             .withPortBindings(ports)
             .withBinds(new Bind(System.getProperty("how-to-java-instrument-jar"), volume, ro));
-        final CreateContainerResponse container = cmd.exec();
+        final ImmutableList<String> cmd = metadata.prependJavaOptsToCmd()
+            ? new ImmutableList.Builder<String>().addAll(standardJavaOpts).addAll(metadata.cmd()).build()
+            : metadata.cmd();
+        if (!cmd.isEmpty()) {
+            create = create.withCmd(cmd);
+        }
+        if (!metadata.entrypoint().isEmpty()) {
+            create = create.withEntrypoint(metadata.entrypoint());
+        }
+        final CreateContainerResponse container = create.exec();
         final String id = container.getId();
         docker.startContainerCmd(id).exec();
 
@@ -100,7 +116,7 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
         try {
             CompletableFuture
                 .allOf(jmx.pollForConnection(), web.pollForConnection())
-                .get(20, TimeUnit.SECONDS);
+                .get(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
@@ -130,7 +146,7 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
                         sleepOrDie(Duration.ofSeconds(1));
                     }
                 })
-                .get(10, TimeUnit.SECONDS);
+                .get(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new TestFrameworkException("Interrupted while connecting to container JMX", e);
@@ -169,7 +185,9 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
     @Override
     public boolean supportsParameter(final ParameterContext parameterCtx, final ExtensionContext ctx) throws ParameterResolutionException {
         final Class<?> type = parameterCtx.getParameter().getType();
-        return type.equals(Endpoint.class) || type.equals(MBeanServerConnection.class);
+        return type.equals(Endpoint.class)
+            || type.equals(MBeanServerConnection.class)
+            || (type.equals(String.class) && parameterCtx.getParameter().getAnnotation(ServletContainersTest.Context.class) != null);
     }
 
     @Override
@@ -180,6 +198,9 @@ public class WebgoatContainerExtension implements BeforeTestExecutionCallback, A
         }
         if (type.equals(Endpoint.class)) {
             return store(ctx).get(KEY_ENDPOINT, Endpoint.class);
+        }
+        if (type.equals(String.class) && parameterCtx.getParameter().getAnnotation(ServletContainersTest.Context.class) != null) {
+            return metadata.context();
         }
         throw new IllegalArgumentException("parameter context is not supported");
     }

@@ -63,14 +63,24 @@ public class Agent {
             .ignore(none())
             .disableClassFormatChanges()
             .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-            .type(is(String.class))
+            .type(
+                is(String.class)
+            )
             .transform(new AgentBuilder.Transformer.ForAdvice()
                 .include(StringCounterAdvice.class.getClassLoader())
                 .advice(isConstructor(), StringCounterAdvice.class.getName())
             )
-            .type(hasSuperType(named("javax.servlet.Servlet").and(nameEndsWith("Servlet"))))
+            .type(
+                hasSuperType(named("javax.servlet.Servlet").and(nameEndsWith("Servlet")))
+            )
             .transform(new AgentBuilder.Transformer.ForAdvice()
                 .advice(hasMethodName("service"), RegisterRequestContextServletAdvice.class.getName())
+            )
+            .type(
+                hasSuperType(named("org.eclipse.jetty.server.Handler"))
+            )
+            .transform(new AgentBuilder.Transformer.ForAdvice()
+                .advice(hasMethodName("handle"), RegisterRequestContextServletAdvice.class.getName())
             )
             .installOn(instrumentation);
     }
