@@ -10,7 +10,7 @@ import lombok.experimental.Accessors;
  */
 @Accessors(fluent = true)
 @Value(staticConstructor = "of")
-public class StringsAllocatedRecord {
+public class StringsAllocated {
     private final Instant timestamp;
     private final int count;
 }

@@ -43,12 +43,6 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- MOCKITO -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
         <!-- TINYLOG -->
         <dependency>
             <groupId>org.tinylog</groupId>
@@ -79,6 +73,24 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- MOCKITO -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- OK HTTP -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- OK IO -->
+        <dependency>
+            <groupId>com.squareup.okio</groupId>
+            <artifactId>okio</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

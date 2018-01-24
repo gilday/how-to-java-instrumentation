@@ -12,13 +12,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StringsAllocatedRecordStore {
 
-    private final LinkedList<StringsAllocatedRecord> records = new LinkedList<>();
+    private final LinkedList<StringsAllocated> records = new LinkedList<>();
 
-    public void add(final StringsAllocatedRecord record) {
+    public void add(final StringsAllocated record) {
         records.add(record);
     }
 
-    public List<StringsAllocatedRecord> records() {
+    public List<StringsAllocated> records() {
         return Collections.unmodifiableList(records);
     }
 }

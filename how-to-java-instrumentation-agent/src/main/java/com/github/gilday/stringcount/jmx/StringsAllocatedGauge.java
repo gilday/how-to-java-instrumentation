@@ -1,17 +1,18 @@
-package com.github.gilday.stringcount;
+package com.github.gilday.stringcount.jmx;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import com.github.gilday.AgentException;
 import com.github.gilday.bootstrap.stringcount.Counter;
+import com.github.gilday.stringcount.StringsAllocatedRecordStore;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Implementation of {@link StringCountGaugeMXBean} which wraps a {@link Counter}
+ * Implementation of {@link StringsAllocatedGaugeMXBean} which wraps a {@link Counter}
  */
 @RequiredArgsConstructor
-public class StringCountGauge implements StringCountGaugeMXBean {
+public class StringsAllocatedGauge implements StringsAllocatedGaugeMXBean {
 
     public static ObjectName name() {
         try {
@@ -22,7 +23,15 @@ public class StringCountGauge implements StringCountGaugeMXBean {
     }
 
     private final Counter counter;
+    private final StringsAllocatedRecordStore store;
 
     @Override
-    public long created() { return counter.get(); }
+    public long allocated() { return counter.get(); }
+
+    @Override
+    public StringsAllocatedBean[] requests() {
+        return store.records().stream()
+            .map(StringsAllocatedBean::fromRecord)
+            .toArray(StringsAllocatedBean[]::new);
+    }
 }

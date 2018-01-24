@@ -50,8 +50,7 @@ public class RequestContextAwareCounter implements Counter {
             // counter can be null because it is instantiated lazily
             return; // nothing to do here
         }
-        store.add(StringsAllocatedRecord.of(clock.instant(), (int) counter.get()));
-        Logger.info("counted {} strings created during request", counter.get());
+        store.add(StringsAllocated.of(clock.instant(), (int) counter.get()));
     }
 
     /**

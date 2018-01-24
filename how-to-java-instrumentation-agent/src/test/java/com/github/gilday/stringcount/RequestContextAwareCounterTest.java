@@ -92,6 +92,6 @@ class RequestContextAwareCounterTest {
         counter.onRequestContextClosed(event);
 
         // THEN stores the count with request metadata
-        verify(store).add(StringsAllocatedRecord.of(clock.instant(), 100));
+        verify(store).add(StringsAllocated.of(clock.instant(), 100));
     }
 }
