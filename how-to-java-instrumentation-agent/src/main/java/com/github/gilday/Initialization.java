@@ -1,6 +1,7 @@
 package com.github.gilday;
 
 import java.lang.management.ManagementFactory;
+import java.time.Clock;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
@@ -11,11 +12,11 @@ import javax.management.ObjectName;
 
 import com.github.gilday.bootstrap.ServiceLocator;
 import com.github.gilday.context.ThreadLocalRequestContextManager;
-import com.github.gilday.stringcount.LongAdderCounter;
 import com.github.gilday.stringcount.RequestContextAwareCounter;
 import com.github.gilday.stringcount.StringCountGauge;
 import com.github.gilday.stringcount.StringCountGaugeMXBean;
-import com.github.gilday.stringcount.ThreadUnsafeCounter;
+import com.github.gilday.stringcount.SimpleCounter;
+import com.github.gilday.stringcount.StringsAllocatedRecordStore;
 import com.google.common.eventbus.EventBus;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -37,8 +38,9 @@ class Initialization {
      */
     private static void configureServiceLocator() {
         final EventBus eventBus = new EventBus();
+        final StringsAllocatedRecordStore store = new StringsAllocatedRecordStore();
         final ThreadLocalRequestContextManager ctxManager = new ThreadLocalRequestContextManager(eventBus);
-        final RequestContextAwareCounter counter = new RequestContextAwareCounter(ThreadUnsafeCounter::new, ctxManager);
+        final RequestContextAwareCounter counter = new RequestContextAwareCounter(SimpleCounter::new, ctxManager, Clock.systemUTC(), store);
         eventBus.register(counter);
 
         ServiceLocator.requestContextManager = ctxManager;

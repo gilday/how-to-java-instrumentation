@@ -6,7 +6,7 @@ import com.github.gilday.bootstrap.stringcount.Counter;
  * thread-unsafe counter simply wraps an int. Should only be used when the count will only be incremented from a single
  * thread
  */
-public class ThreadUnsafeCounter implements Counter {
+public class SimpleCounter implements Counter {
 
     private int value;
 

@@ -1,5 +1,7 @@
 package com.github.gilday.stringcount;
 
+import java.time.Clock;
+
 import com.github.gilday.bootstrap.context.RequestContext;
 import com.github.gilday.bootstrap.context.RequestContextManager;
 import com.github.gilday.bootstrap.context.Symbol;
@@ -20,6 +22,8 @@ public class RequestContextAwareCounter implements Counter {
 
     private final CounterFactory factory;
     private final RequestContextManager ctxManager;
+    private final Clock clock;
+    private final StringsAllocatedRecordStore store;
 
     @Override
     public void inc() {
@@ -43,8 +47,10 @@ public class RequestContextAwareCounter implements Counter {
     @Subscribe public void onRequestContextClosed(final RequestContextClosedEvent event) {
         final Counter counter = event.ctx().get(key);
         if (counter == null) {
+            // counter can be null because it is instantiated lazily
             return; // nothing to do here
         }
+        store.add(StringsAllocatedRecord.of(clock.instant(), (int) counter.get()));
         Logger.info("counted {} strings created during request", counter.get());
     }
 
