@@ -46,11 +46,11 @@ public class RequestContextAwareCounter implements Counter {
 
     @Subscribe public void onRequestContextClosed(final RequestContextClosedEvent event) {
         final Counter counter = event.ctx().get(key);
-        if (counter == null) {
-            // counter can be null because it is instantiated lazily
-            return; // nothing to do here
-        }
-        store.add(StringsAllocated.of(clock.instant(), (int) counter.get()));
+        // counter can be null because it is instantiated lazily
+        final int count = counter == null
+            ? 0
+            : (int) counter.get();
+        store.add(StringsAllocated.of(clock.instant(), count));
     }
 
     /**

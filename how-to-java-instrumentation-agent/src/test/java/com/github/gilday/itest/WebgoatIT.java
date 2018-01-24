@@ -40,25 +40,26 @@ class WebgoatIT {
         assumeTrue(stringsAllocatedGaugeMXBean.requests().length == 0);
 
         // WHEN make an HTTP request to the server
-        httpGET(endpoint);
-
-        // AND sleep a bit to make sure the server registers the count after serving the response
-        sleep(200);
-
-        // THEN server records a strings allocation count for one request
-        final StringsAllocatedBean[] requests = stringsAllocatedGaugeMXBean.requests();
-        assertThat(requests).hasSize(1);
-        // AND surely some strings were allocated to serve the request
-        assertThat(requests[0].getCount()).isGreaterThan(0);
-    }
-
-    private static void httpGET(final Endpoint endpoint) {
-        final OkHttpClient client = new OkHttpClient();
         final HttpUrl url = new HttpUrl.Builder()
             .scheme("http")
             .host(endpoint.host().getHostName())
             .port(endpoint.port())
+            .addPathSegment("WebGoat")
             .build();
+        httpGET(url);
+
+        // AND sleep a bit to make sure the server registers the count after serving the response
+        sleep(2000);
+
+        // THEN server records a strings allocation count for the initial request and redirect to login page
+        final StringsAllocatedBean[] requests = stringsAllocatedGaugeMXBean.requests();
+        assertThat(requests).hasSize(2);
+        // AND surely some strings were allocated to serve the requests
+        assertThat(requests).allMatch(r -> r.getCount() > 0);
+    }
+
+    private static void httpGET(final HttpUrl url) {
+        final OkHttpClient client = new OkHttpClient();
         final Request request = new Request.Builder()
             .url(url)
             .get()
