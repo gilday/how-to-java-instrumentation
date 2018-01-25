@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
+import org.junit.platform.commons.support.AnnotationSupport;
 
 /**
  * {@link TestTemplateInvocationContextProvider} which decorates {@link ServletContainersTest} tests with logic to
@@ -23,13 +24,13 @@ public class ServletContainersTestTemplateInvocationContextProvider implements T
 
     @Override
     public boolean supportsTestTemplate(final ExtensionContext ctx) {
-        final ServletContainersTest containers = ctx.getRequiredTestMethod().getAnnotation(ServletContainersTest.class);
-        return containers != null;
+        return AnnotationSupport.isAnnotated(ctx.getRequiredTestMethod(), ServletContainersTest.class);
     }
 
     @Override
     public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(final ExtensionContext ctx) {
-        final ServletContainersTest containers = ctx.getRequiredTestMethod().getAnnotation(ServletContainersTest.class);
+        final ServletContainersTest containers = AnnotationSupport.findAnnotation(ctx.getRequiredTestMethod(), ServletContainersTest.class)
+            .orElseThrow(() -> new TestFrameworkException("Could not find required ServletContainersTest annotation - this should never happen"));
         final Class<? extends ServletContainerExecutionMetadataProvider> clazz = containers.value();
         final ServletContainerExecutionMetadataProvider provider = instantiateOrDie(clazz);
         return provider.get().map(metadata -> new ServletContainerTestTemplateInvocationContext(docker, metadata));
