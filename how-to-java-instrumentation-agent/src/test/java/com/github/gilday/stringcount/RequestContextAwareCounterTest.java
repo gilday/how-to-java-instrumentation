@@ -7,15 +7,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.Clock;
-
 import com.github.gilday.FakeClock;
 import com.github.gilday.bootstrap.context.RequestContext;
 import com.github.gilday.bootstrap.context.RequestContextManager;
-import com.github.gilday.bootstrap.stringcount.Counter;
 import com.github.gilday.context.RequestContextClosedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.threeten.bp.Clock;
 
 /**
  * Tests for {@link RequestContextAwareCounter}

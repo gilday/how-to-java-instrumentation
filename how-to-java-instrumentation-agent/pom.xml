@@ -33,6 +33,11 @@
         </dependency>
         <!-- JAVAX -->
         <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
@@ -42,6 +47,20 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <!-- STREAMSUPPORT -->
+        <dependency>
+            <groupId>net.sourceforge.streamsupport</groupId>
+            <artifactId>streamsupport</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.streamsupport</groupId>
+            <artifactId>streamsupport-atomic</artifactId>
+        </dependency>
+        <!-- THREETENBP -->
+        <dependency>
+            <groupId>org.threeten</groupId>
+            <artifactId>threetenbp</artifactId>
         </dependency>
         <!-- TINYLOG -->
         <dependency>
@@ -86,12 +105,6 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <!-- OK IO -->
-        <dependency>
-            <groupId>com.squareup.okio</groupId>
-            <artifactId>okio</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

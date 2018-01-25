@@ -1,7 +1,7 @@
 package com.github.gilday.junit.containers;
 
 import static com.github.dockerjava.api.model.AccessMode.ro;
-import static com.github.gilday.junit.containers.ThreadUtils.sleepOrDie;
+import static com.github.gilday.ThreadUtils.sleepOrDie;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -39,6 +39,7 @@ import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.platform.commons.support.AnnotationSupport;
 
 /**
  * Launches instrumented java servlet container in a docker container. Shuts down the docker container after the test
@@ -127,7 +128,23 @@ class ServletContainersTestExtension implements BeforeTestExecutionCallback, Aft
             throw new TestFrameworkException("Timeout connecting to JMX and web sockets", e);
         }
 
-        // ESTABLISH JMX CONNECTION
+        // ESTABLISH JMX CONNECTION IF REQUESTED
+        AnnotationSupport.findAnnotation(ctx.getRequiredTestMethod(), ServletContainersTest.class)
+            .filter(ServletContainersTest::jmx)
+            .map(annotation -> connectToJMX(jmx, Duration.ofMillis(annotation.sleepMillis())))
+            .ifPresent(connector -> {
+                store(ctx).put(KEY_JMX_CONNECTOR, connector);
+                final MBeanServerConnection mBeanServerConnection;
+                try {
+                    mBeanServerConnection = connector.getMBeanServerConnection();
+                } catch (IOException e) {
+                    throw new TestFrameworkException("Unable to retrieve MBeanServerConnection", e);
+                }
+                store(ctx).put(KEY_MBEAN_SERVER_CONNECTION, mBeanServerConnection);
+            });
+    }
+
+    private JMXConnector connectToJMX(final Endpoint jmx, final Duration timeout) {
         final JMXServiceURL jmxURL;
         try {
             jmxURL = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + jmx.host().getHostName() + ":" + jmx.port() + "/jmxrmi");
@@ -148,7 +165,7 @@ class ServletContainersTestExtension implements BeforeTestExecutionCallback, Aft
                         sleepOrDie(Duration.ofSeconds(1));
                     }
                 })
-                .get(60, TimeUnit.SECONDS);
+                .get(timeout.toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new TestFrameworkException("Interrupted while connecting to container JMX", e);
@@ -157,14 +174,7 @@ class ServletContainersTestExtension implements BeforeTestExecutionCallback, Aft
         } catch (TimeoutException e) {
             throw new TestFrameworkException("Timeout connecting to container JMX", e);
         }
-        store(ctx).put(KEY_JMX_CONNECTOR, connector);
-        final MBeanServerConnection mBeanServerConnection;
-        try {
-            mBeanServerConnection = connector.getMBeanServerConnection();
-        } catch (IOException e) {
-            throw new TestFrameworkException("Unable to retrieve MBeanServerConnection", e);
-        }
-        store(ctx).put(KEY_MBEAN_SERVER_CONNECTION, mBeanServerConnection);
+        return connector;
     }
 
     @Override
@@ -188,7 +198,11 @@ class ServletContainersTestExtension implements BeforeTestExecutionCallback, Aft
     public boolean supportsParameter(final ParameterContext parameterCtx, final ExtensionContext ctx) throws ParameterResolutionException {
         final Class<?> type = parameterCtx.getParameter().getType();
         return type.equals(Endpoint.class)
-            || type.equals(MBeanServerConnection.class)
+            || (type.equals(MBeanServerConnection.class) &&
+                AnnotationSupport.findAnnotation(ctx.getRequiredTestMethod(), ServletContainersTest.class)
+                    .map(ServletContainersTest::jmx)
+                    .orElse(false)
+            )
             || (type.equals(String.class) && parameterCtx.getParameter().getAnnotation(ServletContainersTest.Context.class) != null);
     }
 

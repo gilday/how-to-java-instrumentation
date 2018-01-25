@@ -10,8 +10,9 @@ import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 
 import com.github.gilday.AgentException;
+import com.github.gilday.TestException;
 import com.github.gilday.junit.containers.Endpoint;
-import com.github.gilday.junit.containers.Java8ContainersTest;
+import com.github.gilday.junit.containers.AllJMXContainersTest;
 import com.github.gilday.junit.containers.ServletContainersTest;
 import com.github.gilday.junit.containers.ServletContainersTestTemplateInvocationContextProvider;
 import com.github.gilday.stringcount.jmx.StringsAllocatedBean;
@@ -28,13 +29,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ServletContainersTestTemplateInvocationContextProvider.class)
 class StringCountIT {
 
-    @Java8ContainersTest
+    @AllJMXContainersTest
     void it_records_system_wide_string_allocation_count(final MBeanServerConnection mBeanServerConnection) {
         final StringsAllocatedGaugeMXBean stringCountGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class, true);
         assertThat(stringCountGaugeMXBean.allocated()).isGreaterThan(0);
     }
 
-    @Java8ContainersTest
+    @AllJMXContainersTest
     void it_records_per_request_string_allocation_count(final Endpoint endpoint, @ServletContainersTest.Context final String context, final MBeanServerConnection mBeanServerConnection) throws InterruptedException {
         // GIVEN a server that has not yet served any requests
         final StringsAllocatedGaugeMXBean stringsAllocatedGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class);
@@ -71,8 +72,7 @@ class StringCountIT {
         try {
             client.newCall(request).execute();
         } catch (IOException e) {
-            throw new AgentException("failed to make http request to container under test", e);
+            throw new TestException("failed to make http request to container under test", e);
         }
     }
-
 }

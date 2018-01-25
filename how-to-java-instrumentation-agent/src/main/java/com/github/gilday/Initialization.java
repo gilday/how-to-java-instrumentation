@@ -1,7 +1,6 @@
 package com.github.gilday;
 
 import java.lang.management.ManagementFactory;
-import java.time.Clock;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
@@ -12,7 +11,7 @@ import javax.management.ObjectName;
 
 import com.github.gilday.bootstrap.ServiceLocator;
 import com.github.gilday.context.ThreadLocalRequestContextManager;
-import com.github.gilday.stringcount.LongAdderCounter;
+import com.github.gilday.stringcount.CounterWithGauge;
 import com.github.gilday.stringcount.MultiplexCounter;
 import com.github.gilday.stringcount.RequestContextAwareCounter;
 import com.github.gilday.stringcount.SimpleCounter;
@@ -21,6 +20,7 @@ import com.github.gilday.stringcount.jmx.StringsAllocatedGauge;
 import com.google.common.eventbus.EventBus;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.threeten.bp.Clock;
 
 /**
  * initializes services needed for how-to-java-instrumentation-agent
@@ -35,7 +35,10 @@ class Initialization {
         final ThreadLocalRequestContextManager ctxManager = new ThreadLocalRequestContextManager(eventBus);
         final RequestContextAwareCounter perRequestCounter = new RequestContextAwareCounter(SimpleCounter::new, ctxManager, Clock.systemUTC(), store);
         eventBus.register(perRequestCounter);
-        final LongAdderCounter systemWideCounter = new LongAdderCounter();
+        // the system wide counter only works with SimpleCounter, but SimpleCounter has no thread synchronization so the count is inaccurate
+        // TODO investigate why synchronization (and volatile) breaks the system wide counter (causes stack overflow)
+        // MAYBE accurately counting String allocations across the entire system is completely crazy, and I should drop this feature from this toy project
+        final CounterWithGauge systemWideCounter = new SimpleCounter();
         final MultiplexCounter counter = MultiplexCounter.of(
             perRequestCounter,
             systemWideCounter

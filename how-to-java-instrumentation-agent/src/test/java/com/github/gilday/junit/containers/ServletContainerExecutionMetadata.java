@@ -3,7 +3,6 @@ package com.github.gilday.junit.containers;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNullableByDefault;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;

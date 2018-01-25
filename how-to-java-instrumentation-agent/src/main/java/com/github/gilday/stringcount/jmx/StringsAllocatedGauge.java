@@ -7,6 +7,7 @@ import com.github.gilday.AgentException;
 import com.github.gilday.bootstrap.stringcount.Counter;
 import com.github.gilday.stringcount.LongGauge;
 import com.github.gilday.stringcount.StringsAllocatedRecordStore;
+import java8.util.stream.StreamSupport;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -31,7 +32,7 @@ public class StringsAllocatedGauge implements StringsAllocatedGaugeMXBean {
 
     @Override
     public StringsAllocatedBean[] requests() {
-        return store.records().stream()
+        return StreamSupport.stream(store.records())
             .map(StringsAllocatedBean::fromRecord)
             .toArray(StringsAllocatedBean[]::new);
     }

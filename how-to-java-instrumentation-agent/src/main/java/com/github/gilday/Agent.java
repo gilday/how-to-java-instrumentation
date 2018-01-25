@@ -8,16 +8,17 @@ import static net.bytebuddy.matcher.ElementMatchers.nameEndsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.jar.JarFile;
 
 import com.github.gilday.context.RegisterRequestContextServletAdvice;
 import com.github.gilday.stringcount.StringCounterAdvice;
+import com.google.common.io.ByteStreams;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import org.pmw.tinylog.Logger;
 
@@ -42,17 +43,37 @@ public class Agent {
      * classpath. This makes critical instrumentation singletons available to all class loaders in the JVM
      */
     private static void appendBootstrapJarToClassLoader(final Instrumentation instrumentation) {
-        try(final InputStream is = Agent.class.getResourceAsStream("/lib/bootstrap.jar")) {
-            if (is == null) {
-                throw new InitializationException("Failed to find /bootstrap.jar on the agent classpath");
-            }
-            final File file = File.createTempFile("bootstrap", "jar");
-            Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            final JarFile jarfile = new JarFile(file);
-            instrumentation.appendToBootstrapClassLoaderSearch(jarfile);
+        final File file;
+        try {
+            file = File.createTempFile("bootstrap", "jar");
+        } catch (IOException e) {
+            throw new InitializationException("Failed to create temporary file bootstrap.jar");
+        }
+        try(final BufferedInputStream is = readEmbeddedBootstrapJarOrDie();
+            final FileOutputStream fos = new FileOutputStream(file)
+        ) {
+            ByteStreams.copy(is, fos);
         } catch (IOException e) {
             throw new InitializationException("Failed to append bootstrap.jar to the JVM bootstrap classloader", e);
         }
+        final JarFile jarfile;
+        try {
+            jarfile = new JarFile(file);
+        } catch (IOException e) {
+            throw new InitializationException("Failed to read bootstrap.jar file from disk", e);
+        }
+        instrumentation.appendToBootstrapClassLoaderSearch(jarfile);
+    }
+
+    /**
+     * @return a {@link BufferedInputStream} for the embedded bootstrap.jar
+     */
+    private static BufferedInputStream readEmbeddedBootstrapJarOrDie() {
+        final InputStream is = Agent.class.getResourceAsStream("/lib/bootstrap.jar");
+        if (is == null) {
+            throw new InitializationException("Failed to find /lib/bootstrap.jar on the agent classpath");
+        }
+        return new BufferedInputStream(is);
     }
 
     /**

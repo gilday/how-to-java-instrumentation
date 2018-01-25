@@ -27,15 +27,17 @@
         <versions.assertj-core>3.9.0</versions.assertj-core>
         <versions.byte-buddy>1.7.9</versions.byte-buddy>
         <versions.docker-java>3.0.14</versions.docker-java>
-        <versions.guava>23.6-jre</versions.guava>
+        <versions.guava>20.0</versions.guava> <!-- JRE 6 support discontinued beyond v20 -->
         <versions.javax.servlet-api>3.1.0</versions.javax.servlet-api>
+        <versions.jsr305>3.0.2</versions.jsr305>
         <versions.junit-jupiter>5.0.2</versions.junit-jupiter>
         <versions.junit-platform>1.0.2</versions.junit-platform>
         <versions.lombok>1.16.18</versions.lombok>
         <versions.mockito-core>2.13.0</versions.mockito-core>
         <versions.okhttp>3.9.1</versions.okhttp>
-        <versions.okio>1.13.0</versions.okio>
         <versions.slf4j>1.7.25</versions.slf4j>
+        <versions.streamsupport>1.6.0</versions.streamsupport>
+        <versions.threetenbp>1.3.6</versions.threetenbp>
         <versions.tinylog>1.3.2</versions.tinylog>
 
 
@@ -52,7 +54,8 @@
         <versions.plugins.maven-shade-plugin>3.1.0</versions.plugins.maven-shade-plugin>
         <versions.plugins.maven-site-plugin>3.6</versions.plugins.maven-site-plugin>
         <versions.plugins.maven-surefire-plugin>2.19.1</versions.plugins.maven-surefire-plugin>
-        <versions.plugins.exec-maven-plugin>1.6.0</versions.plugins.exec-maven-plugin>
+        <versions.plugins.retrolambda-maven-plugin>2.5.3</versions.plugins.retrolambda-maven-plugin>
+        <versions.plugins.animal-sniffer-maven-plugin>1.16</versions.plugins.animal-sniffer-maven-plugin>
     </properties>
 
     <dependencyManagement>
@@ -87,6 +90,11 @@
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${versions.javax.servlet-api}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${versions.jsr305}</version>
+            </dependency>
             <!-- JUNIT -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -116,11 +124,22 @@
                 <artifactId>okhttp</artifactId>
                 <version>${versions.okhttp}</version>
             </dependency>
-            <!-- OK IO -->
+            <!-- STREAMSUPPORT -->
             <dependency>
-                <groupId>com.squareup.okio</groupId>
-                <artifactId>okio</artifactId>
-                <version>${versions.okio}</version>
+                <groupId>net.sourceforge.streamsupport</groupId>
+                <artifactId>streamsupport</artifactId>
+                <version>${versions.streamsupport}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.streamsupport</groupId>
+                <artifactId>streamsupport-atomic</artifactId>
+                <version>${versions.streamsupport}</version>
+            </dependency>
+            <!-- THREETENBP -->
+            <dependency>
+                <groupId>org.threeten</groupId>
+                <artifactId>threetenbp</artifactId>
+                <version>${versions.threetenbp}</version>
             </dependency>
             <!-- TINYLOG -->
             <dependency>
@@ -208,15 +227,53 @@
                     </dependencies>
                 </plugin>
                 <plugin>
+                    <groupId>net.orfjackal.retrolambda</groupId>
+                    <artifactId>retrolambda-maven-plugin</artifactId>
+                    <version>${versions.plugins.retrolambda-maven-plugin}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>exec-maven-plugin</artifactId>
-                    <version>${versions.plugins.exec-maven-plugin}</version>
+                    <artifactId>animal-sniffer-maven-plugin</artifactId>
+                    <version>${versions.plugins.animal-sniffer-maven-plugin}</version>
+                    <executions>
+                        <execution>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <signature>
+                            <groupId>org.codehaus.mojo.signature</groupId>
+                            <artifactId>java16</artifactId>
+                            <version>1.1</version>
+                        </signature>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>net.orfjackal.retrolambda</groupId>
+                <artifactId>retrolambda-maven-plugin</artifactId>
+                <configuration>
+                    <target>1.6</target>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-main</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

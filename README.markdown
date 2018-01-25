@@ -1,7 +1,7 @@
 # how-to-java-instrumentation
 
 Reference project for using Java instrumentation techniques to build a Java
-agent. Inspired by Contrast Security's [Join the Team
+agent for JREs 6, 7, and 8. Inspired by Contrast Security's [Join the Team
 Challenge](https://github.com/Contrast-Security-OSS/join-the-team/blob/master/challenges.md),
 this Java agent measures String allocations; it counts both Strings allocated
 since the start of the JVM, and Strings allocated in the context of a web
@@ -69,7 +69,7 @@ repeated for any number of application servers with which the agent should be
 tested against.
 
 ```java
-@Java8ContainersTest
+@AllJMXContainersTest
 void it_records_per_request_string_allocation_count(final Endpoint endpoint, @ServletContainersTest.Context final String context, final MBeanServerConnection mBeanServerConnection) throws InterruptedException {
     // GIVEN a server that has not yet served any requests
     final StringsAllocatedGaugeMXBean stringsAllocatedGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class);
@@ -97,6 +97,23 @@ void it_records_per_request_string_allocation_count(final Endpoint endpoint, @Se
 ```
 
 ![junit test run against multiple app servers](./media/junit-tests.png)
+
+
+### Java 8 source, backported to Java 6
+
+This project is written in Java 8, but only uses APIs and dependencies
+compatible with Java 6, and generates Java 6 compatible byte code with the help
+of some tools
+
+* [Retrolambda](https://github.com/orfjackal/retrolambda) for backporting Java 7
+  and Java 8 language features to Java 6
+* [ThreeTen Backport](http://www.threeten.org/threetenbp/) for backporting
+  JSR-310 (java.time) API
+* [streamsupport](https://github.com/streamsupport/streamsupport) for
+  backporting Java 8 Streams API and Java 7 Concurrency APIs
+* [animal-sniffer maven
+  plugin](http://www.mojohaus.org/animal-sniffer/animal-sniffer-maven-plugin/)
+  for failing the build when code uses APIs not available in Java 6
 
 
 ### Byte Buddy
@@ -141,8 +158,6 @@ private static void instrumentClasses(final Instrumentation instrumentation) {
 ## TODO
 
 * Refactor dependency wiring code to use Dagger
-* Investigate using Retrolambda, various backport libraries, and Animal Sniffer
-  to migrate the agent code to support Java 6, 7, 8
 * Investigate JMX limitations that prevent the container's JMX port from being a
   different port than the host port to which it is bound (this limitation
   prevents the containerized tests from running in parallel)

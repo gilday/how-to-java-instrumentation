@@ -24,6 +24,10 @@ public @interface ServletContainersTest {
 
     Class<? extends ServletContainerExecutionMetadataProvider> value();
 
+    boolean jmx() default true;
+
+    long sleepMillis() default 60000;
+
     /**
      * A test method {@link String} parameter decorated with {@link Context} will resolve to a java web application
      * context path as defined by {@link ServletContainerExecutionMetadata#context()}

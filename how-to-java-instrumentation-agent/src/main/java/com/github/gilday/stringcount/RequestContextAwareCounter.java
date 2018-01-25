@@ -1,7 +1,5 @@
 package com.github.gilday.stringcount;
 
-import java.time.Clock;
-
 import com.github.gilday.bootstrap.context.RequestContext;
 import com.github.gilday.bootstrap.context.RequestContextManager;
 import com.github.gilday.bootstrap.context.Symbol;
@@ -10,6 +8,7 @@ import com.github.gilday.context.RequestContextClosedEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
+import org.threeten.bp.Clock;
 
 /**
  * Decorates a {@link Counter} such that only strings created within a given {@link RequestContext} will be counted

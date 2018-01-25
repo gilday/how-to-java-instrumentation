@@ -1,9 +1,8 @@
 package com.github.gilday.stringcount;
 
-import java.time.Instant;
-
 import lombok.Value;
 import lombok.experimental.Accessors;
+import org.threeten.bp.Instant;
 
 /**
  * Record of the number of strings allocated in a given user request

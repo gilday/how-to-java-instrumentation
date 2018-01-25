@@ -1,16 +1,18 @@
 package com.github.gilday;
 
-import static java.time.ZoneOffset.UTC;
+import static org.threeten.bp.ZoneOffset.UTC;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
+
+import org.threeten.bp.Clock;
+import org.threeten.bp.DateTimeUtils;
+import org.threeten.bp.Duration;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.Month;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZoneOffset;
+import org.threeten.bp.format.DateTimeFormatter;
 
 /**
  * Factory which creates a mutable {@link java.time.Clock} with a default date that is obviously old and should only be
@@ -74,6 +76,6 @@ public class FakeClock extends Clock {
     }
 
     public Date legacyDate() {
-        return Date.from(clock.instant());
+        return DateTimeUtils.toDate(clock.instant());
     }
 }
