@@ -14,16 +14,16 @@ web request records.
 ![jconsole](./media/jconsole.png)
 
 
-# Prequisites
+## Prequisites
 
-* JDK 8 and Maven ☕️
-* Docker 🐳
+* ☕️ JDK 8 and Maven
+* 🐳 Docker
 
 The JUnit tests expect that the user running the build has access to a local
 docker daemon without the need for privilege escalation.
 
 
-# Building
+## Building
 
 Build the agent and run full suite of tests. Note: the first run may take
 significantly long if it needs to pull missing docker images for tests
@@ -31,7 +31,7 @@ significantly long if it needs to pull missing docker images for tests
     mvn install
 
 
-# Usage
+## Usage
 
 Configure the JVM to use the agent using command line flag `javaagent`. See
 `java` usage. Use a JVM client like `jconsole` to browse the agent's metrics.
@@ -50,12 +50,12 @@ Then launch the jconsole GUI and connect to the JMX server at `localhost:9010`
     jconsole &
 
 
-# Design
+## Design
 
 Some noteworthy design aspects
 
 
-## Testing Framework
+### Testing Framework
 
 In addition to the usual Java unit test tools JUnit, AssertJ, and Mockito, this
 project includes a custom JUnit Platform Extension for writing integration tests
@@ -99,7 +99,7 @@ void it_records_per_request_string_allocation_count(final Endpoint endpoint, @Se
 ![junit test run against multiple app servers](./media/junit-tests.png)
 
 
-## Byte Buddy
+### Byte Buddy
 
 The excellent [Byte Buddy](http://bytebuddy.net) library does the heavy lifting
 for instrumeting users' bytecode. Here is how the agent uses the Byte Buddy
@@ -138,7 +138,7 @@ private static void instrumentClasses(final Instrumentation instrumentation) {
 ```
 
 
-# TODO
+## TODO
 
 * Refactor dependency wiring code to use Dagger
 * Investigate using Retrolambda, various backport libraries, and Animal Sniffer
