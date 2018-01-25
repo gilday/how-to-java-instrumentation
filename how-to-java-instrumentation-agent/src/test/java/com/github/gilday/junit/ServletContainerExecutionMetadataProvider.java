@@ -1,8 +1,11 @@
 package com.github.gilday.junit;
 
+import java.util.stream.Stream;
+
 /**
- * A class with a no-args ctor that creates a {@link ServletContainerExecutionMetadata}
+ * A necessarily round-about way of identifying a {@link Stream} of {@link ServletContainerExecutionMetadata} to be used
+ * in a {@link ServletContainersTest}
  */
 public interface ServletContainerExecutionMetadataProvider {
-    ServletContainerExecutionMetadata get();
+     Stream<ServletContainerExecutionMetadata> get();
 }

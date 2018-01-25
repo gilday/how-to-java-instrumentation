@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
 import javax.management.JMX;
 import javax.management.MBeanServerConnection;
@@ -12,6 +13,8 @@ import javax.management.MBeanServerConnection;
 import com.github.gilday.AgentException;
 import com.github.gilday.junit.Endpoint;
 import com.github.gilday.junit.Java8;
+import com.github.gilday.junit.ServletContainerExecutionMetadata;
+import com.github.gilday.junit.ServletContainerExecutionMetadataProvider;
 import com.github.gilday.junit.ServletContainersTest;
 import com.github.gilday.junit.ServletContainersTestTemplateInvocationContextProvider;
 import com.github.gilday.stringcount.jmx.StringsAllocatedBean;
@@ -28,23 +31,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ServletContainersTestTemplateInvocationContextProvider.class)
 class StringCountIT {
 
-    @ServletContainersTest({
-        Java8.Tomcat7.class,
-        Java8.Tomcat8.class,
-        Java8.Tomcat9.class,
-        Java8.Jetty9_4.class
-    })
+    @ServletContainersTest(Java8Containers.class)
     void it_records_system_wide_string_allocation_count(final MBeanServerConnection mBeanServerConnection) {
         final StringsAllocatedGaugeMXBean stringCountGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class, true);
         assertThat(stringCountGaugeMXBean.allocated()).isGreaterThan(0);
     }
 
-    @ServletContainersTest({
-        Java8.Tomcat7.class,
-        Java8.Tomcat8.class,
-        Java8.Tomcat9.class,
-        Java8.Jetty9_4.class
-    })
+    @ServletContainersTest(Java8Containers.class)
     void it_records_per_request_string_allocation_count(final Endpoint endpoint, @ServletContainersTest.Context final String context, final MBeanServerConnection mBeanServerConnection) throws InterruptedException {
         // GIVEN a server that has not yet served any requests
         final StringsAllocatedGaugeMXBean stringsAllocatedGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class);
@@ -82,6 +75,19 @@ class StringCountIT {
             client.newCall(request).execute();
         } catch (IOException e) {
             throw new AgentException("failed to make http request to container under test", e);
+        }
+    }
+
+    /**
+     * Reusable {@link ServletContainerExecutionMetadataProvider} which provides all Java 8 servlet containers
+     */
+    public static class Java8Containers implements ServletContainerExecutionMetadataProvider {
+        @Override
+        public Stream<ServletContainerExecutionMetadata> get() {
+            return Stream.concat(
+                Java8.jettys(),
+                Java8.tomcats()
+            );
         }
     }
 }

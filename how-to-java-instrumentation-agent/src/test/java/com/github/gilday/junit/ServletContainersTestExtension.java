@@ -43,6 +43,8 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 /**
  * Launches instrumented java servlet container in a docker container. Shuts down the docker container after the test
  * concludes
+ *
+ * TODO externalize timeout config
  */
 @RequiredArgsConstructor
 class ServletContainersTestExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
@@ -146,7 +148,7 @@ class ServletContainersTestExtension implements BeforeTestExecutionCallback, Aft
                         sleepOrDie(Duration.ofSeconds(1));
                     }
                 })
-                .get(30, TimeUnit.SECONDS);
+                .get(60, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new TestFrameworkException("Interrupted while connecting to container JMX", e);

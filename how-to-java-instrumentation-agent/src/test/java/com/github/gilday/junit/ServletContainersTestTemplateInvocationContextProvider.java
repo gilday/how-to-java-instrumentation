@@ -1,6 +1,5 @@
 package com.github.gilday.junit;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -31,15 +30,9 @@ public class ServletContainersTestTemplateInvocationContextProvider implements T
     @Override
     public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(final ExtensionContext ctx) {
         final ServletContainersTest containers = ctx.getRequiredTestMethod().getAnnotation(ServletContainersTest.class);
-        final List<Class<? extends ServletContainerExecutionMetadataProvider>> classes = Arrays.asList(containers.value());
-        if (classes.isEmpty()) {
-            throw new TestFrameworkException("Annotation ServletContainersTest must contain a set of ServletContainerExecutionMetadataProvider classes");
-        }
-        return classes.stream()
-            .map(ServletContainersTestTemplateInvocationContextProvider::instantiateOrDie)
-            .map(ServletContainerExecutionMetadataProvider::get)
-            .map(metadata -> new ServletContainerTestTemplateInvocationContext(docker, metadata));
-
+        final Class<? extends ServletContainerExecutionMetadataProvider> clazz = containers.value();
+        final ServletContainerExecutionMetadataProvider provider = instantiateOrDie(clazz);
+        return provider.get().map(metadata -> new ServletContainerTestTemplateInvocationContext(docker, metadata));
     }
 
     private static ServletContainerExecutionMetadataProvider instantiateOrDie(final Class<? extends ServletContainerExecutionMetadataProvider> clazz) {

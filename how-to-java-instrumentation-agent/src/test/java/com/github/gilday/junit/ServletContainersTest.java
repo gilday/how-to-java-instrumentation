@@ -22,7 +22,7 @@ import org.junit.jupiter.api.TestTemplate;
 @TestTemplate
 public @interface ServletContainersTest {
 
-    Class<? extends ServletContainerExecutionMetadataProvider>[] value();
+    Class<? extends ServletContainerExecutionMetadataProvider> value();
 
     /**
      * A test method {@link String} parameter decorated with {@link Context} will resolve to a java web application

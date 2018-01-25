@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Stores counts for strings created in user requests
+ *
+ * TODO cap the number of records recorded
  */
 @RequiredArgsConstructor
 public class StringsAllocatedRecordStore {
