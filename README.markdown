@@ -147,3 +147,4 @@ private static void instrumentClasses(final Instrumentation instrumentation) {
   different port than the host port to which it is bound (this limitation
   prevents the containerized tests from running in parallel)
 * Investigate migrating to sbt (or gradle)
+* Include HTTP path in the string allocation per request record
