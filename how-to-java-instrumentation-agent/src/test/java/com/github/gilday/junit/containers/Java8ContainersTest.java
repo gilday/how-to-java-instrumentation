@@ -1,7 +1,7 @@
-package com.github.gilday.junit;
+package com.github.gilday.junit.containers;
 
-import static com.github.gilday.junit.Java8.jettys;
-import static com.github.gilday.junit.Java8.tomcats;
+import static com.github.gilday.junit.containers.Java8.jettys;
+import static com.github.gilday.junit.containers.Java8.tomcats;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 

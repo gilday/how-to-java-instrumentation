@@ -1,4 +1,4 @@
-package com.github.gilday.junit;
+package com.github.gilday.junit.containers;
 
 import java.io.IOException;
 import java.net.InetAddress;

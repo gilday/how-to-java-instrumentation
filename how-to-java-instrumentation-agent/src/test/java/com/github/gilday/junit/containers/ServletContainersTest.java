@@ -1,4 +1,4 @@
-package com.github.gilday.junit;
+package com.github.gilday.junit.containers;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.PARAMETER;

@@ -1,7 +1,7 @@
-package com.github.gilday.junit;
+package com.github.gilday.junit.containers;
 
 import static com.github.dockerjava.api.model.AccessMode.ro;
-import static com.github.gilday.junit.ThreadUtils.sleepOrDie;
+import static com.github.gilday.junit.containers.ThreadUtils.sleepOrDie;
 
 import java.io.IOException;
 import java.net.InetAddress;

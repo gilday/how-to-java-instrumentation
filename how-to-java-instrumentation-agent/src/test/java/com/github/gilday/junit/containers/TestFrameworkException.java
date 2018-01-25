@@ -1,4 +1,4 @@
-package com.github.gilday.junit;
+package com.github.gilday.junit.containers;
 
 /**
  * Generic {@link RuntimeException} for failures in test framework

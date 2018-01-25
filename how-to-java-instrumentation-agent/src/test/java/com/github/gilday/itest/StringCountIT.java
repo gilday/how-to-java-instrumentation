@@ -10,11 +10,10 @@ import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 
 import com.github.gilday.AgentException;
-import com.github.gilday.junit.Endpoint;
-import com.github.gilday.junit.Java8;
-import com.github.gilday.junit.Java8ContainersTest;
-import com.github.gilday.junit.ServletContainersTest;
-import com.github.gilday.junit.ServletContainersTestTemplateInvocationContextProvider;
+import com.github.gilday.junit.containers.Endpoint;
+import com.github.gilday.junit.containers.Java8ContainersTest;
+import com.github.gilday.junit.containers.ServletContainersTest;
+import com.github.gilday.junit.containers.ServletContainersTestTemplateInvocationContextProvider;
 import com.github.gilday.stringcount.jmx.StringsAllocatedBean;
 import com.github.gilday.stringcount.jmx.StringsAllocatedGauge;
 import com.github.gilday.stringcount.jmx.StringsAllocatedGaugeMXBean;
