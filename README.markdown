@@ -11,7 +11,7 @@ The agent exposes its String allocation metrics via JMX. Use JConsole to see
 the system-wide String allocations, and browse the set of Strings allocated per
 web request records.
 
-[!jconsole](./media/jconsole.png)
+![jconsole](./media/jconsole.png)
 
 
 # Prequisites
@@ -96,7 +96,7 @@ void it_records_per_request_string_allocation_count(final Endpoint endpoint, @Se
 }
 ```
 
-[!junit test run against multiple app servers](./media/junit-tests.png)
+![junit test run against multiple app servers](./media/junit-tests.png)
 
 
 ## Byte Buddy
