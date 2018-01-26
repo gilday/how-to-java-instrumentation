@@ -26,6 +26,11 @@
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
         </dependency>
+        <!-- DAGGER -->
+        <dependency>
+            <groupId>com.google.dagger</groupId>
+            <artifactId>dagger</artifactId>
+        </dependency>
         <!-- GUAVA -->
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -173,8 +178,8 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Agent-Class>com.github.gilday.Agent</Agent-Class>
-                            <Premain-Class>com.github.gilday.Agent</Premain-Class>
+                            <Agent-Class>com.github.gilday.Main</Agent-Class>
+                            <Premain-Class>com.github.gilday.Main</Premain-Class>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                         </manifestEntries>
                     </archive>

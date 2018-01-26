@@ -26,6 +26,7 @@
         <!-- dependencies -->
         <versions.assertj-core>3.9.0</versions.assertj-core>
         <versions.byte-buddy>1.7.9</versions.byte-buddy>
+        <versions.dagger>2.14.1</versions.dagger>
         <versions.docker-java>3.0.14</versions.docker-java>
         <versions.guava>20.0</versions.guava> <!-- JRE 6 support discontinued beyond v20 -->
         <versions.javax.servlet-api>3.1.0</versions.javax.servlet-api>
@@ -54,8 +55,9 @@
         <versions.plugins.maven-shade-plugin>3.1.0</versions.plugins.maven-shade-plugin>
         <versions.plugins.maven-site-plugin>3.6</versions.plugins.maven-site-plugin>
         <versions.plugins.maven-surefire-plugin>2.19.1</versions.plugins.maven-surefire-plugin>
-        <versions.plugins.retrolambda-maven-plugin>2.5.3</versions.plugins.retrolambda-maven-plugin>
         <versions.plugins.animal-sniffer-maven-plugin>1.16</versions.plugins.animal-sniffer-maven-plugin>
+        <versions.plugins.lombok-maven-plugin>1.16.20.0</versions.plugins.lombok-maven-plugin>
+        <versions.plugins.retrolambda-maven-plugin>2.5.3</versions.plugins.retrolambda-maven-plugin>
     </properties>
 
     <dependencyManagement>
@@ -71,6 +73,12 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
                 <version>${versions.byte-buddy}</version>
+            </dependency>
+            <!-- DAGGER -->
+            <dependency>
+                <groupId>com.google.dagger</groupId>
+                <artifactId>dagger</artifactId>
+                <version>${versions.dagger}</version>
             </dependency>
             <!-- DOCKER-JAVA -->
             <dependency>
@@ -158,6 +166,18 @@
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${versions.lombok}</version>
+                            </path>
+                            <path>
+                                <groupId>com.google.dagger</groupId>
+                                <artifactId>dagger-compiler</artifactId>
+                                <version>${versions.dagger}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -266,6 +286,24 @@
                     <execution>
                         <goals>
                             <goal>process-main</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-maven-plugin</artifactId>
+                <version>${versions.plugins.lombok-maven-plugin}</version>
+                <configuration>
+                    <formatPreferences>
+                        <javaLangAsFQN>skip</javaLangAsFQN>
+                    </formatPreferences>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>delombok</goal>
                         </goals>
                     </execution>
                 </executions>

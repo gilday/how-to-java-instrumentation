@@ -1,11 +1,11 @@
 package com.github.gilday.stringcount.jmx;
 
+import javax.inject.Inject;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import com.github.gilday.AgentException;
 import com.github.gilday.bootstrap.stringcount.Counter;
-import com.github.gilday.stringcount.LongGauge;
 import com.github.gilday.stringcount.StringsAllocatedRecordStore;
 import java8.util.stream.StreamSupport;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Implementation of {@link StringsAllocatedGaugeMXBean} which wraps a {@link Counter}
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class StringsAllocatedGauge implements StringsAllocatedGaugeMXBean {
 
     public static ObjectName name() {

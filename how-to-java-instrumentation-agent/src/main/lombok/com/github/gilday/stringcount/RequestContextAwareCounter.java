@@ -1,5 +1,7 @@
 package com.github.gilday.stringcount;
 
+import javax.inject.Inject;
+
 import com.github.gilday.bootstrap.context.RequestContext;
 import com.github.gilday.bootstrap.context.RequestContextManager;
 import com.github.gilday.bootstrap.context.Symbol;
@@ -13,7 +15,7 @@ import org.threeten.bp.Clock;
 /**
  * Decorates a {@link Counter} such that only strings created within a given {@link RequestContext} will be counted
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class RequestContextAwareCounter implements CounterWithGauge {
 
     @VisibleForTesting final Symbol<CounterWithGauge> key = Symbol.of("counter");

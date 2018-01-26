@@ -4,14 +4,16 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
+import javax.inject.Inject;
+
+import lombok.NoArgsConstructor;
 
 /**
  * Stores counts for strings created in user requests
  *
  * TODO cap the number of records recorded
  */
-@RequiredArgsConstructor
+@NoArgsConstructor(onConstructor = @__(@Inject))
 public class StringsAllocatedRecordStore {
 
     private final LinkedList<StringsAllocated> records = new LinkedList<>();
