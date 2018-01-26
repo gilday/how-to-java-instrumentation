@@ -1,6 +1,6 @@
 package com.github.gilday.context;
 
-import com.github.gilday.bootstrap.ServiceLocator;
+import com.github.gilday.bootstrap.AgentServiceLocator;
 import com.github.gilday.bootstrap.context.RequestContext;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -15,10 +15,10 @@ import net.bytebuddy.asm.Advice.OnMethodExit;
 public class RegisterRequestContextServletAdvice {
 
     @OnMethodEnter static void enter() {
-        ServiceLocator.requestContextManager.create();
+        AgentServiceLocator.requestContextManager.create();
     }
 
     @OnMethodExit static void exit() {
-        ServiceLocator.requestContextManager.close();
+        AgentServiceLocator.requestContextManager.close();
     }
 }

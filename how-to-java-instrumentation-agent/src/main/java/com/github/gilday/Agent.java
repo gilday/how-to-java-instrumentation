@@ -8,72 +8,71 @@ import static net.bytebuddy.matcher.ElementMatchers.nameEndsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
-import java.util.jar.JarFile;
+import java.lang.management.ManagementFactory;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+
+import com.github.gilday.bootstrap.AgentServiceLocator;
+import com.github.gilday.bootstrap.context.RequestContextManager;
+import com.github.gilday.bootstrap.stringcount.Counter;
+import com.github.gilday.bus.EventBusBinder;
+import com.github.gilday.clock.ClockBinder;
+import com.github.gilday.context.ContextBinder;
 import com.github.gilday.context.RegisterRequestContextServletAdvice;
+import com.github.gilday.stringcount.StringCountBinder;
 import com.github.gilday.stringcount.StringCounterAdvice;
-import com.google.common.io.ByteStreams;
+import com.github.gilday.stringcount.jmx.StringsAllocatedGauge;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import net.bytebuddy.agent.builder.AgentBuilder;
-import org.pmw.tinylog.Logger;
+import org.glassfish.hk2.api.ServiceLocator;
+import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 
 /**
- * how-to-java-instrument agent entry point. First, appends the embedded bootstrap.jar to the JVM's bootstrap class
- * loader to make critical instrumentation singletons available to all classes in the JVM. These critical classes cannot
- * be loaded before they are injected into the bootstrap class loader, therefore none of these classes may be referenced
- * in this class; instead, these classes are referenced in {@link Initialization} which services as a class loading
- * buffer. Next, use Byte Buddy to instrument system and user classes with new behavior
+ * Initializes global singletons, publishes singletons to the {@link AgentServiceLocator} to make them available to
+ * instrumented code, then instruments java.lang.String and user Servlets with Byte Buddy
  */
-public class Agent {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class Agent {
 
-    public static void premain(final String args, final Instrumentation instrumentation) {
-        appendBootstrapJarToClassLoader(instrumentation);
-        Initialization.initialize();
+    static void run(final Instrumentation instrumentation) {
+        final ServiceLocator locator = ServiceLocatorUtilities.bind(
+            "how-to-java-instrumentation",
+            new EventBusBinder(),
+            new ClockBinder(),
+            new ContextBinder(),
+            new StringCountBinder()
+        );
+
+        // expose singletons to ServiceLocator
+        AgentServiceLocator.requestContextManager = locator.getService(RequestContextManager.class);
+        AgentServiceLocator.counter = locator.getService(Counter.class);
+
+        // Register JMX MBeans to expose Agent metrics to external management clients
+        final StringsAllocatedGauge gauge = locator.getService(StringsAllocatedGauge.class);
+        registerMBean(gauge);
+
+        // Run instrumentation
         instrumentClasses(instrumentation);
-        Logger.info("how-to-java-instrumentation loaded");
     }
 
-    /**
-     * copies the bootstrap.jar from the classpath to the file system then adds it to the Bootstrap bootloader
-     * classpath. This makes critical instrumentation singletons available to all class loaders in the JVM
-     */
-    private static void appendBootstrapJarToClassLoader(final Instrumentation instrumentation) {
-        final File file;
+    private static void registerMBean(final StringsAllocatedGauge gauge) {
+        final ObjectName name = StringsAllocatedGauge.name();
+        final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
         try {
-            file = File.createTempFile("bootstrap", "jar");
-        } catch (IOException e) {
-            throw new InitializationException("Failed to create temporary file bootstrap.jar");
+            if (server.isRegistered(name)) {
+                server.unregisterMBean(name);
+            }
+            server.registerMBean(gauge, StringsAllocatedGauge.name());
+        } catch (InstanceNotFoundException | InstanceAlreadyExistsException | NotCompliantMBeanException | MBeanRegistrationException e) {
+            throw new InitializationException("Unable to register String Count MXBean", e);
         }
-        try(final BufferedInputStream is = readEmbeddedBootstrapJarOrDie();
-            final FileOutputStream fos = new FileOutputStream(file)
-        ) {
-            ByteStreams.copy(is, fos);
-        } catch (IOException e) {
-            throw new InitializationException("Failed to append bootstrap.jar to the JVM bootstrap classloader", e);
-        }
-        final JarFile jarfile;
-        try {
-            jarfile = new JarFile(file);
-        } catch (IOException e) {
-            throw new InitializationException("Failed to read bootstrap.jar file from disk", e);
-        }
-        instrumentation.appendToBootstrapClassLoaderSearch(jarfile);
-    }
-
-    /**
-     * @return a {@link BufferedInputStream} for the embedded bootstrap.jar
-     */
-    private static BufferedInputStream readEmbeddedBootstrapJarOrDie() {
-        final InputStream is = Agent.class.getResourceAsStream("/lib/bootstrap.jar");
-        if (is == null) {
-            throw new InitializationException("Failed to find /lib/bootstrap.jar on the agent classpath");
-        }
-        return new BufferedInputStream(is);
     }
 
     /**

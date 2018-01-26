@@ -31,6 +31,11 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
+        <!-- HK2 -->
+        <dependency>
+            <groupId>org.glassfish.hk2</groupId>
+            <artifactId>hk2</artifactId>
+        </dependency>
         <!-- JAVAX -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -173,8 +178,8 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Agent-Class>com.github.gilday.Agent</Agent-Class>
-                            <Premain-Class>com.github.gilday.Agent</Premain-Class>
+                            <Agent-Class>com.github.gilday.Main</Agent-Class>
+                            <Premain-Class>com.github.gilday.Main</Premain-Class>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                         </manifestEntries>
                     </archive>

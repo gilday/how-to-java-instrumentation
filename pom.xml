@@ -28,6 +28,7 @@
         <versions.byte-buddy>1.7.9</versions.byte-buddy>
         <versions.docker-java>3.0.14</versions.docker-java>
         <versions.guava>20.0</versions.guava> <!-- JRE 6 support discontinued beyond v20 -->
+        <versions.hk2>2.4.0</versions.hk2>
         <versions.javax.servlet-api>3.1.0</versions.javax.servlet-api>
         <versions.jsr305>3.0.2</versions.jsr305>
         <versions.junit-jupiter>5.0.2</versions.junit-jupiter>
@@ -83,6 +84,12 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${versions.guava}</version>
+            </dependency>
+            <!-- HK2 -->
+            <dependency>
+                <groupId>org.glassfish.hk2</groupId>
+                <artifactId>hk2</artifactId>
+                <version>${versions.hk2}</version>
             </dependency>
             <!-- JAVAX -->
             <dependency>

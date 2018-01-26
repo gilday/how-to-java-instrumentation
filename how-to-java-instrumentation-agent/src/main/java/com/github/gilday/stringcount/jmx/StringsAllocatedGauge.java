@@ -1,5 +1,6 @@
 package com.github.gilday.stringcount.jmx;
 
+import javax.inject.Inject;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
@@ -13,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Implementation of {@link StringsAllocatedGaugeMXBean} which wraps a {@link Counter}
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class StringsAllocatedGauge implements StringsAllocatedGaugeMXBean {
 
     public static ObjectName name() {

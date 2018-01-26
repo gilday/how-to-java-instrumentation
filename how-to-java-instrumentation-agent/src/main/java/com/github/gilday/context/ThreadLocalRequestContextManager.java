@@ -1,5 +1,7 @@
 package com.github.gilday.context;
 
+import javax.inject.Inject;
+
 import com.github.gilday.AgentException;
 import com.github.gilday.bootstrap.context.RequestContext;
 import com.github.gilday.bootstrap.context.RequestContextManager;
@@ -11,7 +13,7 @@ import lombok.experimental.Accessors;
 /**
  * {@link RequestContextManager} which stores {@link RequestContext} in {@link ThreadLocal} storage
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class ThreadLocalRequestContextManager implements RequestContextManager {
 
     private final EventBus eventBus;

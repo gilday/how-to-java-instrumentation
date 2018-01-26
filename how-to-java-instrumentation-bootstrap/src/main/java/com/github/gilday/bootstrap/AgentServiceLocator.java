@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
  * instrumentation hooks to retrieve singleton instances which are shared across the JVM.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ServiceLocator {
+public class AgentServiceLocator {
     public static Counter counter;
     public static RequestContextManager requestContextManager;
 }
