@@ -24,11 +24,7 @@ public class StringsAllocatedGauge implements StringsAllocatedGaugeMXBean {
         }
     }
 
-    private final LongGauge systemWideStringsAllocatedGauge;
     private final StringsAllocatedRecordStore store;
-
-    @Override
-    public long allocated() { return systemWideStringsAllocatedGauge.sample(); }
 
     @Override
     public StringsAllocatedBean[] requests() {

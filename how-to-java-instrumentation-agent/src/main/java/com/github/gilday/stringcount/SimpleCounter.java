@@ -6,7 +6,7 @@ package com.github.gilday.stringcount;
  */
 public class SimpleCounter implements CounterWithGauge {
 
-    private int value;
+    private long value;
 
     @Override
     public void inc() { value++; }

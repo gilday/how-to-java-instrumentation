@@ -53,10 +53,6 @@
             <groupId>net.sourceforge.streamsupport</groupId>
             <artifactId>streamsupport</artifactId>
         </dependency>
-        <dependency>
-            <groupId>net.sourceforge.streamsupport</groupId>
-            <artifactId>streamsupport-atomic</artifactId>
-        </dependency>
         <!-- THREETENBP -->
         <dependency>
             <groupId>org.threeten</groupId>

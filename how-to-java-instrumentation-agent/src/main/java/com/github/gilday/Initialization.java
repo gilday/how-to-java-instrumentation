@@ -11,8 +11,6 @@ import javax.management.ObjectName;
 
 import com.github.gilday.bootstrap.ServiceLocator;
 import com.github.gilday.context.ThreadLocalRequestContextManager;
-import com.github.gilday.stringcount.CounterWithGauge;
-import com.github.gilday.stringcount.MultiplexCounter;
 import com.github.gilday.stringcount.RequestContextAwareCounter;
 import com.github.gilday.stringcount.SimpleCounter;
 import com.github.gilday.stringcount.StringsAllocatedRecordStore;
@@ -33,23 +31,16 @@ class Initialization {
         final EventBus eventBus = new EventBus();
         final StringsAllocatedRecordStore store = new StringsAllocatedRecordStore();
         final ThreadLocalRequestContextManager ctxManager = new ThreadLocalRequestContextManager(eventBus);
-        final RequestContextAwareCounter perRequestCounter = new RequestContextAwareCounter(SimpleCounter::new, ctxManager, Clock.systemUTC(), store);
-        eventBus.register(perRequestCounter);
-        // the system wide counter only works with SimpleCounter, but SimpleCounter has no thread synchronization so the count is inaccurate
-        // TODO investigate why synchronization (and volatile) breaks the system wide counter (causes stack overflow)
-        // MAYBE accurately counting String allocations across the entire system is completely crazy, and I should drop this feature from this toy project
-        final CounterWithGauge systemWideCounter = new SimpleCounter();
-        final MultiplexCounter counter = MultiplexCounter.of(
-            perRequestCounter,
-            systemWideCounter
-        );
+        new SimpleCounter(); // 🤷‍♂️ the SimpleCounter factory on the next line (implemented as a method references to nullary ctor) will crash the JVM unless SimpleCounter is first instantiated
+        final RequestContextAwareCounter counter = new RequestContextAwareCounter(SimpleCounter::new, ctxManager, Clock.systemUTC(), store);
+        eventBus.register(counter);
 
         // expose singletons to ServiceLocator
         ServiceLocator.requestContextManager = ctxManager;
         ServiceLocator.counter = counter;
 
         // Register JMX MBeans to expose Agent metrics to external management clients
-        final StringsAllocatedGauge gauge = new StringsAllocatedGauge(systemWideCounter, store);
+        final StringsAllocatedGauge gauge = new StringsAllocatedGauge(store);
         registerMBean(gauge);
     }
 

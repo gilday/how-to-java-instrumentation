@@ -130,11 +130,6 @@
                 <artifactId>streamsupport</artifactId>
                 <version>${versions.streamsupport}</version>
             </dependency>
-            <dependency>
-                <groupId>net.sourceforge.streamsupport</groupId>
-                <artifactId>streamsupport-atomic</artifactId>
-                <version>${versions.streamsupport}</version>
-            </dependency>
             <!-- THREETENBP -->
             <dependency>
                 <groupId>org.threeten</groupId>

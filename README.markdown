@@ -3,13 +3,11 @@
 Reference project for using Java instrumentation techniques to build a Java
 agent for JREs 6, 7, and 8. Inspired by Contrast Security's [Join the Team
 Challenge](https://github.com/Contrast-Security-OSS/join-the-team/blob/master/challenges.md),
-this Java agent measures String allocations; it counts both Strings allocated
-since the start of the JVM, and Strings allocated in the context of a web
-request.
+this Java agent measures String allocations; it counts and Strings allocated in
+the context of a web request.
 
-The agent exposes its String allocation metrics via JMX. Use JConsole to see
-the system-wide String allocations, and browse the set of Strings allocated per
-web request records.
+The agent exposes its String allocation metrics via JMX. Use JConsole to browse
+the set of Strings allocated per web request records.
 
 ![jconsole](./media/jconsole.png)
 

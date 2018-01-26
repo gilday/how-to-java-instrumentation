@@ -9,10 +9,9 @@ import java.io.IOException;
 import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 
-import com.github.gilday.AgentException;
 import com.github.gilday.TestException;
-import com.github.gilday.junit.containers.Endpoint;
 import com.github.gilday.junit.containers.AllJMXContainersTest;
+import com.github.gilday.junit.containers.Endpoint;
 import com.github.gilday.junit.containers.ServletContainersTest;
 import com.github.gilday.junit.containers.ServletContainersTestTemplateInvocationContextProvider;
 import com.github.gilday.stringcount.jmx.StringsAllocatedBean;
@@ -28,12 +27,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @ExtendWith(ServletContainersTestTemplateInvocationContextProvider.class)
 class StringCountIT {
-
-    @AllJMXContainersTest
-    void it_records_system_wide_string_allocation_count(final MBeanServerConnection mBeanServerConnection) {
-        final StringsAllocatedGaugeMXBean stringCountGaugeMXBean = JMX.newMXBeanProxy(mBeanServerConnection, StringsAllocatedGauge.name(), StringsAllocatedGaugeMXBean.class, true);
-        assertThat(stringCountGaugeMXBean.allocated()).isGreaterThan(0);
-    }
 
     @AllJMXContainersTest
     void it_records_per_request_string_allocation_count(final Endpoint endpoint, @ServletContainersTest.Context final String context, final MBeanServerConnection mBeanServerConnection) throws InterruptedException {
