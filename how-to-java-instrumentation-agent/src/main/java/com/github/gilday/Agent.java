@@ -35,9 +35,9 @@ class Agent {
 
     static Agent create() { return ObjectGraph.create(new AgentModule()).get(Agent.class); }
 
-    private final Counter counter;
-    private final RequestContextManager ctxManager;
-    private final StringsAllocatedGauge gauge;
+    final Counter counter;
+    final RequestContextManager ctxManager;
+    final StringsAllocatedGauge gauge;
 
     @Inject
     public Agent(final Counter counter, final RequestContextManager ctxManager, final StringsAllocatedGauge gauge) {

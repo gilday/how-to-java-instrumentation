@@ -11,6 +11,7 @@ import com.github.gilday.FakeClock;
 import com.github.gilday.bootstrap.context.RequestContext;
 import com.github.gilday.bootstrap.context.RequestContextManager;
 import com.github.gilday.context.RequestContextClosedEvent;
+import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.threeten.bp.Clock;
@@ -24,12 +25,14 @@ class RequestContextAwareCounterTest {
     private StringsAllocatedRecordStore store;
     private RequestContextAwareCounter counter;
     private RequestContextManager ctxManager;
+    private EventBus bus;
 
     @BeforeEach
     void before() {
         clock = new FakeClock();
         ctxManager = mock(RequestContextManager.class);
         store = mock(StringsAllocatedRecordStore.class);
+        bus = mock(EventBus.class);
     }
 
     @Test
@@ -38,7 +41,7 @@ class RequestContextAwareCounterTest {
         final RequestContext ctx = mock(RequestContext.class);
         when(ctxManager.get()).thenReturn(ctx);
         final CounterWithGauge inner = new SimpleCounter();
-        counter = new RequestContextAwareCounter(() -> inner, ctxManager, clock, store);
+        counter = new RequestContextAwareCounter(bus, () -> inner, ctxManager, clock, store);
         when(ctx.get(counter.key)).thenReturn(inner);
 
         // WHEN increment twice then get
@@ -54,7 +57,7 @@ class RequestContextAwareCounterTest {
     void it_does_not_increment_if_no_request_context_available() {
         // GIVEN the context manager returns null context
         final CounterWithGauge inner = mock(CounterWithGauge.class);
-        counter = new RequestContextAwareCounter(() -> inner, ctxManager, clock, store);
+        counter = new RequestContextAwareCounter(bus, () -> inner, ctxManager, clock, store);
         when(ctxManager.get()).thenReturn(null);
 
         // WHEN increment
@@ -68,7 +71,7 @@ class RequestContextAwareCounterTest {
     void it_fails_when_retrieve_counter_value_outside_of_a_context() {
         // GIVEN the context manager returns null context
         final CounterWithGauge inner = mock(CounterWithGauge.class);
-        counter = new RequestContextAwareCounter(() -> inner, ctxManager, clock, store);
+        counter = new RequestContextAwareCounter(bus, () -> inner, ctxManager, clock, store);
         when(ctxManager.get()).thenReturn(null);
 
         // EXPECT retrieve to throw
@@ -80,7 +83,7 @@ class RequestContextAwareCounterTest {
         // GIVEN a counter with 100L string allocations counted in the current context
         final CounterWithGauge inner = mock(CounterWithGauge.class);
         when(inner.sample()).thenReturn(100L);
-        counter = new RequestContextAwareCounter(() -> inner, ctxManager, clock, store);
+        counter = new RequestContextAwareCounter(bus, () -> inner, ctxManager, clock, store);
         final RequestContext ctx = mock(RequestContext.class);
         when(ctx.get(counter.key)).thenReturn(inner);
         when(ctxManager.get()).thenReturn(ctx);

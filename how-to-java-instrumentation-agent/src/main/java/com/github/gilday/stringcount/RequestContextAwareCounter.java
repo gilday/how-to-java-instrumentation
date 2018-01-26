@@ -8,6 +8,7 @@ import com.github.gilday.bootstrap.context.Symbol;
 import com.github.gilday.bootstrap.stringcount.Counter;
 import com.github.gilday.context.RequestContextClosedEvent;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.threeten.bp.Clock;
 
@@ -24,11 +25,18 @@ public class RequestContextAwareCounter implements CounterWithGauge {
     private final StringsAllocatedRecordStore store;
 
     @Inject
-    public RequestContextAwareCounter(final CounterFactory factory, final RequestContextManager ctxManager, final Clock clock, final StringsAllocatedRecordStore store) {
+    public RequestContextAwareCounter(
+        final EventBus bus,
+        final CounterFactory factory,
+        final RequestContextManager ctxManager,
+        final Clock clock,
+        final StringsAllocatedRecordStore store
+    ) {
         this.factory = factory;
         this.ctxManager = ctxManager;
         this.clock = clock;
         this.store = store;
+        bus.register(this);
     }
 
     @Override
