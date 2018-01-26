@@ -155,7 +155,10 @@ private static void instrumentClasses(final Instrumentation instrumentation) {
 
 ## TODO
 
-* Refactor dependency wiring code to use Dagger
+* Refactor dependency wiring code to use Dagger. Note: Dagger 2 targets Java 7,
+  but Dagger 1 is compatible with Java 6. Since Dagger 2 is mostly a code
+  generation tool and has very few classes that are included at runtime, it
+  might be possible to create a Java 6 compatible Dagger runtime
 * Investigate JMX limitations that prevent the container's JMX port from being a
   different port than the host port to which it is bound (this limitation
   prevents the containerized tests from running in parallel)
