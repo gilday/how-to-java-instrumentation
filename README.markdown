@@ -114,6 +114,19 @@ of some tools
   for failing the build when code uses APIs not available in Java 6
 
 
+### Dependency Injection
+
+Dependency injectors like Spring, Guice, and HK2 rely on reflection to build
+dependency graphs at runtime, and as I discovered when trying to integrate Guice
+and HK2, this does not work well with agents (I did not try Spring because it's
+bloated and I strongly dislike its API).
+
+Unlike these injectors, the Dagger injector generates code at build time which
+obviates the need for troublesome and comparatively slow reflection. Dagger
+allows this agent to have the benefits of dependency injection without the
+problems introduced by other injectors.
+
+
 ### Byte Buddy
 
 The excellent [Byte Buddy](http://bytebuddy.net) library does the heavy lifting
@@ -155,10 +168,6 @@ private static void instrumentClasses(final Instrumentation instrumentation) {
 
 ## TODO
 
-* Refactor dependency wiring code to use Dagger. Note: Dagger 2 targets Java 7,
-  but Dagger 1 is compatible with Java 6. Since Dagger 2 is mostly a code
-  generation tool and has very few classes that are included at runtime, it
-  might be possible to create a Java 6 compatible Dagger runtime
 * Investigate JMX limitations that prevent the container's JMX port from being a
   different port than the host port to which it is bound (this limitation
   prevents the containerized tests from running in parallel)
