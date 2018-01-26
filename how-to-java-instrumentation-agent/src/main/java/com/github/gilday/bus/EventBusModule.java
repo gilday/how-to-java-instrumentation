@@ -1,5 +1,7 @@
 package com.github.gilday.bus;
 
+import javax.inject.Singleton;
+
 import com.google.common.eventbus.EventBus;
 import dagger.Module;
 import dagger.Provides;
@@ -7,10 +9,10 @@ import dagger.Provides;
 /**
  * Dagger module for the agent's {@link EventBus}
  */
-@Module
+@Module(library = true)
 public class EventBusModule {
 
-    @Provides public static EventBus bus() {
+    @Provides @Singleton public EventBus provideBus() {
         return new EventBus();
     }
 }

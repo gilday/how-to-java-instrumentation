@@ -15,14 +15,13 @@ import org.pmw.tinylog.Logger;
  * how-to-java-instrument agent entry point. First, appends the embedded bootstrap.jar to the JVM's bootstrap class
  * loader to make critical instrumentation singletons available to all classes in the JVM. These critical classes cannot
  * be loaded before they are injected into the bootstrap class loader, therefore none of these classes may be referenced
- * in this class; instead, these classes are referenced in {@link Initialization} which services as a class loading
- * buffer. Next, run the {@link Agent}
+ * in this class; instead, the {@link Agent} initializes the singletons and runs instrumentation
  */
 public class Main {
 
     public static void premain(final String args, final Instrumentation instrumentation) {
         appendBootstrapJarToClassLoader(instrumentation);
-        Agent.run(instrumentation);
+        Agent.create().run(instrumentation);
         Logger.info("how-to-java-instrumentation loaded");
     }
 

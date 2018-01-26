@@ -1,88 +1,75 @@
 package com.github.gilday.junit.containers;
 
-import java.util.Optional;
-
-import javax.annotation.Nullable;
-
-import com.google.common.base.Preconditions;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import lombok.Builder;
-import lombok.NonNull;
-import lombok.Value;
-import lombok.experimental.Accessors;
 
 /**
  * Value object which contains metadata for launching a servlet container
  */
-@Accessors(fluent = true)
-@Builder
-@Value
-public class ServletContainerExecutionMetadata {
+@AutoValue
+public abstract class ServletContainerExecutionMetadata {
 
     /**
      * friendly name for reporting
      */
-    private final String name;
+    public abstract String name();
 
     /**
      * docker image
      */
-    private final String image;
+    public abstract String image();
 
     /**
      * docker entrypoint
      */
-    private final ImmutableList<String> entrypoint;
+    public abstract ImmutableList<String> entrypoint();
 
     /**
      * docker CMD
      */
-    private final ImmutableList<String> cmd;
+    public abstract ImmutableList<String> cmd();
 
     /**
      * HTTP port
      */
-    private final int port;
+    public abstract int port();
 
     /**
      * java web application context path
      */
-    private final String context;
+    public abstract String context();
 
     /**
      * Container images which use a java executable as the entry point should include the contents of the JAVA_OPTS
      * environment variable in the execution to java. Other container images that use a bash script as an entry point
      * will reference the JAVA_OPTS environment variable
      */
-    private final boolean prependJavaOptsToCmd;
+    public abstract boolean prependJavaOptsToCmd();
 
     /**
      * environment variable name for java opts configuration variable
      */
-    private final String javaOptsEnvVariableName;
+    public abstract String javaOptsEnvVariableName();
 
-    private ServletContainerExecutionMetadata(
-        @NonNull final String name,
-        @NonNull final String image,
-        final ImmutableList<String> entrypoint,
-        final ImmutableList<String> cmd,
-        final int port,
-        @Nullable final String context,
-        final boolean prependJavaOptsToCmd,
-        @Nullable final String javaOptsEnvVariableName
-    ) {
-        Preconditions.checkArgument(port > 0, "port must be greater than 0");
-        this.name = name;
-        this.image = image;
-        this.entrypoint = coalesceToEmpty(entrypoint);
-        this.cmd = coalesceToEmpty(cmd);
-        this.port = port;
-        this.context = context == null ? "" : context;
-        this.prependJavaOptsToCmd = prependJavaOptsToCmd;
-        this.javaOptsEnvVariableName = Optional.ofNullable(javaOptsEnvVariableName).orElse("JAVA_OPTS");
+    public static Builder builder() {
+        return new AutoValue_ServletContainerExecutionMetadata.Builder()
+            .entrypoint(ImmutableList.of())
+            .cmd(ImmutableList.of())
+            .context("")
+            .prependJavaOptsToCmd(false)
+            .javaOptsEnvVariableName("JAVA_OPTS");
     }
 
-    private static <T> ImmutableList<T> coalesceToEmpty(@Nullable final ImmutableList<T> list) {
-        return Optional.ofNullable(list).orElse(ImmutableList.of());
+    @AutoValue.Builder
+    public static abstract class Builder {
+        abstract Builder name(String value);
+        abstract Builder image(String value);
+        abstract Builder entrypoint(ImmutableList<String> value);
+        abstract Builder cmd(ImmutableList<String> value);
+        abstract Builder port(int value);
+        abstract Builder context(String value);
+        abstract Builder prependJavaOptsToCmd(boolean value);
+        abstract Builder javaOptsEnvVariableName(String value);
+        abstract ServletContainerExecutionMetadata build();
     }
 }

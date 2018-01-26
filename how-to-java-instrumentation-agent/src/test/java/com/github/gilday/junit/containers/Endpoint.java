@@ -5,26 +5,20 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
 
-import lombok.Value;
-import lombok.experimental.Accessors;
+import com.google.auto.value.AutoValue;
 
 /**
  * Value object which contains the endpoint of an instrumented web application
  */
-@Accessors(fluent = true)
-@Value(staticConstructor = "of")
-public class Endpoint {
+@AutoValue
+public abstract class Endpoint {
 
-    private final InetAddress host;
-    private final int port;
-
-    public boolean isListening() {
-        try (final Socket ignored = new Socket(host, port)) {
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
+    public static Endpoint of(final InetAddress host, final int port) {
+        return new AutoValue_Endpoint(host, port);
     }
+
+    public abstract InetAddress host();
+    public abstract int port();
 
     public CompletableFuture<Void> pollForConnection() {
         return CompletableFuture.runAsync(() -> {
@@ -36,5 +30,13 @@ public class Endpoint {
                 }
             }
         });
+    }
+
+    private boolean isListening() {
+        try (final Socket ignored = new Socket(host(), port())) {
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

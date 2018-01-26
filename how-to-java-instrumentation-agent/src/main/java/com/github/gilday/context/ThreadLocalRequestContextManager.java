@@ -1,21 +1,24 @@
 package com.github.gilday.context;
 
+import javax.inject.Inject;
+
 import com.github.gilday.AgentException;
 import com.github.gilday.bootstrap.context.RequestContext;
 import com.github.gilday.bootstrap.context.RequestContextManager;
 import com.google.common.eventbus.EventBus;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import org.pmw.tinylog.Logger;
 
 /**
  * {@link RequestContextManager} which stores {@link RequestContext} in {@link ThreadLocal} storage
  */
-@RequiredArgsConstructor
-public class ThreadLocalRequestContextManager implements RequestContextManager {
+class ThreadLocalRequestContextManager implements RequestContextManager {
 
     private final EventBus eventBus;
     private final ThreadLocal<ContextCount> store = new ThreadLocal<>();
+
+    @Inject ThreadLocalRequestContextManager(final EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
 
     @Override
     public void create() {
@@ -54,13 +57,14 @@ public class ThreadLocalRequestContextManager implements RequestContextManager {
     /**
      * Pair class which groups a {@link RequestContext} with a latch count for tracking nested servlets
      */
-    @Accessors(fluent = true)
-    @Getter
-    @RequiredArgsConstructor
     private static class ContextCount {
 
         private final RequestContext ctx;
         private int count = 1;
+
+        ContextCount(final RequestContext ctx) {
+            this.ctx = ctx;
+        }
 
         private void inc() {
             count++;
@@ -71,6 +75,14 @@ public class ThreadLocalRequestContextManager implements RequestContextManager {
                 throw new IllegalStateException("Cannot decrement latch count because it is 0");
             }
             count--;
+        }
+
+        RequestContext ctx() {
+            return this.ctx;
+        }
+
+        public int count() {
+            return this.count;
         }
     }
 }

@@ -31,7 +31,6 @@ import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -47,7 +46,6 @@ import org.junit.platform.commons.support.AnnotationSupport;
  *
  * TODO externalize timeout config
  */
-@RequiredArgsConstructor
 class ServletContainersTestExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
 
     private static final String KEY_CONTAINER_ID = "CONTAINER-ID";
@@ -57,6 +55,11 @@ class ServletContainersTestExtension implements BeforeTestExecutionCallback, Aft
 
     private final DockerClient docker;
     private final ServletContainerExecutionMetadata metadata;
+
+    ServletContainersTestExtension(final DockerClient docker, final ServletContainerExecutionMetadata metadata) {
+        this.docker = docker;
+        this.metadata = metadata;
+    }
 
     @Override
     public void beforeTestExecution(final ExtensionContext ctx) {

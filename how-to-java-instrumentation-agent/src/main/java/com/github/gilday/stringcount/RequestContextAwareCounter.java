@@ -9,13 +9,11 @@ import com.github.gilday.bootstrap.stringcount.Counter;
 import com.github.gilday.context.RequestContextClosedEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.Subscribe;
-import lombok.RequiredArgsConstructor;
 import org.threeten.bp.Clock;
 
 /**
  * Decorates a {@link Counter} such that only strings created within a given {@link RequestContext} will be counted
  */
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class RequestContextAwareCounter implements CounterWithGauge {
 
     @VisibleForTesting final Symbol<CounterWithGauge> key = Symbol.of("counter");
@@ -24,6 +22,14 @@ public class RequestContextAwareCounter implements CounterWithGauge {
     private final RequestContextManager ctxManager;
     private final Clock clock;
     private final StringsAllocatedRecordStore store;
+
+    @Inject
+    public RequestContextAwareCounter(final CounterFactory factory, final RequestContextManager ctxManager, final Clock clock, final StringsAllocatedRecordStore store) {
+        this.factory = factory;
+        this.ctxManager = ctxManager;
+        this.clock = clock;
+        this.store = store;
+    }
 
     @Override
     public void inc() {
@@ -56,7 +62,7 @@ public class RequestContextAwareCounter implements CounterWithGauge {
     /**
      * gets (and if necessary, lazily creates) the counter in the given context
      */
-    private synchronized CounterWithGauge lazyGet(final RequestContext ctx) {
+    private CounterWithGauge lazyGet(final RequestContext ctx) {
         CounterWithGauge counter = ctx.get(key);
         if (counter == null) {
             counter = factory.create();

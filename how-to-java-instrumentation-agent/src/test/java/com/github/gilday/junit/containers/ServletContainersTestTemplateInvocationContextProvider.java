@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.core.DockerClientBuilder;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
@@ -44,11 +43,15 @@ public class ServletContainersTestTemplateInvocationContextProvider implements T
         }
     }
 
-    @RequiredArgsConstructor
     private static class ServletContainerTestTemplateInvocationContext implements TestTemplateInvocationContext {
 
         private final DockerClient docker;
         private final ServletContainerExecutionMetadata metadata;
+
+        private ServletContainerTestTemplateInvocationContext(final DockerClient docker, final ServletContainerExecutionMetadata metadata) {
+            this.docker = docker;
+            this.metadata = metadata;
+        }
 
         @Override
         public String getDisplayName(final int invocationIndex) {

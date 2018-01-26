@@ -2,13 +2,9 @@ package com.github.gilday;
 
 import java.time.Duration;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 /**
  * static utility
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ThreadUtils {
 
     /**
@@ -21,4 +17,6 @@ public class ThreadUtils {
             Thread.currentThread().interrupt();
         }
     }
+
+    private ThreadUtils() { }
 }

@@ -1,13 +1,12 @@
 package com.github.gilday;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import net.bytebuddy.asm.Advice.OnMethodEnter;
 import net.bytebuddy.asm.Advice.OnMethodExit;
 import net.bytebuddy.asm.Advice.This;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DebugAdvice {
+
+    private DebugAdvice() { }
 
     @OnMethodEnter
     static void enter(@This Object instance) {

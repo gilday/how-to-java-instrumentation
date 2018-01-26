@@ -8,13 +8,16 @@ import com.github.gilday.AgentException;
 import com.github.gilday.bootstrap.stringcount.Counter;
 import com.github.gilday.stringcount.StringsAllocatedRecordStore;
 import java8.util.stream.StreamSupport;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Implementation of {@link StringsAllocatedGaugeMXBean} which wraps a {@link Counter}
  */
-@RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class StringsAllocatedGauge implements StringsAllocatedGaugeMXBean {
+
+    @Inject
+    public StringsAllocatedGauge(final StringsAllocatedRecordStore store) {
+        this.store = store;
+    }
 
     public static ObjectName name() {
         try {
