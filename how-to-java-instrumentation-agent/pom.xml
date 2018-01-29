@@ -208,6 +208,10 @@
                             <pattern>org.pmw.tinylog</pattern>
                             <shadedPattern>com.github.gilday.org.pmw.tinylog</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>com.google.common</pattern>
+                            <shadedPattern>com.github.gilday.guava</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
                 <executions>
